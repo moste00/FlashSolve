@@ -1,0 +1,6 @@
+obj/
+build/
+bin/
+.vscode/
+.antlr/
+gen/
