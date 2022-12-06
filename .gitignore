@@ -4,3 +4,4 @@ bin/
 .vscode/
 .antlr/
 gen/
+setup.sh
