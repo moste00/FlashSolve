@@ -29,8 +29,8 @@ constraint_block : OPEN_CURLY_BRACE constraint_block_item* CLOSED_CURLY_BRACE
 constraint_block_item : constraint_expr
                       ;
 
-constraint_expr : (SOFT)? expression_or_dist   
-                | uniqueness_constraint  
+constraint_expr : (SOFT)? expression_or_dist SEMICOLON
+                | uniqueness_constraint  SEMICOLON
                 | expression IMPLIES constraint_set  
                 | IF OPEN_PAREN expression CLOSED_PAREN 
                   constraint_set 
@@ -69,8 +69,11 @@ operator_assignment : variable_lvalue ASSIGNMENT_OPERATOR expression
 expression_or_cond_pattern : cond_pattern | expression ;
 cond_pattern : expression MATCHES pattern 
              ;
-primary : primary_literal
+primary : primary_literal 
+        | hierarchical_identifier //TODO: Complete the rule as found in the standard
         ;
+hierarchical_identifier : ID //TODO: Complete the rule as found in the standard 
+                        ;
 primary_literal : NUMBER | STRING_LITERAL 
                 ;
 //TODO: See if the supporting attr_spec rule in the formal grammar is relevant and deserve to be included here
@@ -87,11 +90,15 @@ value_range : expression
 variable_lvalue : ID
                 ;
 /* ********************************************************** Data Declarations ****************************************************************** */
-class_data_decl : (RAND | RANDC)? data_type ID 
+class_data_decl : (RAND | RANDC)? data_type ID SEMICOLON
                 ;
-data_type : BIT  (OPEN_SQUARE_BRACKET UNSIGNED_NUMBER COLON UNSIGNED_NUMBER CLOSED_SQUARE_BRACKET)?
+data_type : BIT  (OPEN_SQUARE_BRACKET DECIMAL_NUMBER COLON DECIMAL_NUMBER CLOSED_SQUARE_BRACKET)?
           ;
-/* ********************************************************** Terminals  ******************************************************************* */
+/* ********************************************************** Terminals  ************************************************************************* */
+//IMPORTANT: ALWAYS KEEP THIS ABOVE ANY_ASCII_CHARACTER
+WS : [ \t\r\n]+ -> skip ;
+COMMENTS : '//' ~[\r\n]* -> skip ;
+
 CLASS : 'class';
 ENDCLASS : 'endclass';
 CONSTRAINT : 'constraint';
@@ -121,33 +128,33 @@ QUESTION_MARK : '?';
 DOT : '.'  ;
 DOT_STAR : '.*' ;
 
-BINARY_DIGIT : '[01xzXZ]' ;
-OCTAL_DIGIT : '[0-7xzXZ]' ;
-DECIMAL_DIGIT : '[0-9]' ;
-HEX_DIGIT : '[0-9a-fA-FxzXZ]';
-BINARY_VALUE : BINARY_DIGIT ('_' | BINARY_DIGIT)* ;
-OCTAL_VALUE  : OCTAL_DIGIT ('_' | OCTAL_DIGIT)* ;
-UNSIGNED_NUMBER : DECIMAL_DIGIT ('_'| DECIMAL_DIGIT )* ;
-HEX_VALUE : HEX_DIGIT ('_'| HEX_DIGIT )* ;
-
-BASE_SIGN_PREFIX : '\'' ('s'|'S')? ;
-BINARY_BASE : BASE_SIGN_PREFIX ('b'|'B') ;
-OCTAL_BASE :  BASE_SIGN_PREFIX ('o'|'O') ;
-HEX_BASE :  BASE_SIGN_PREFIX ('h'|'H') ;
-DECIMAL_BASE : BASE_SIGN_PREFIX ('d'|'D') ;
-
-NON_ZERO_UNSIGNED_NUMBER : '[1-9]'('_' | DECIMAL_DIGIT)* ;
-SIZE : NON_ZERO_UNSIGNED_NUMBER ;
-BINARY_NUMBER :  SIZE?  BINARY_BASE BINARY_VALUE ;
-OCTAL_NUMBER : SIZE? OCTAL_BASE OCTAL_VALUE ;
-HEX_NUMBER : SIZE? HEX_BASE HEX_VALUE ;
+fragment DECIMAL_DIGIT : [0-9] ;
+fragment BINARY_DIGIT : [01xzXZ] ;
+fragment OCTAL_DIGIT : [0-7xzXZ] ;
+fragment HEX_DIGIT : [0-9a-fA-FxzXZ] ;
+fragment UNSIGNED_NUMBER : DECIMAL_DIGIT ('_'| DECIMAL_DIGIT )* ;
+fragment BINARY_VALUE : BINARY_DIGIT ('_' | BINARY_DIGIT)* ;
+fragment OCTAL_VALUE  : OCTAL_DIGIT ('_' | OCTAL_DIGIT)* ;
+fragment HEX_VALUE : HEX_DIGIT ('_'| HEX_DIGIT )* ;
+fragment BASE_SIGN_PREFIX : '\'' ('s'|'S')? ;
+fragment BINARY_BASE : BASE_SIGN_PREFIX ('b'|'B') ;
+fragment OCTAL_BASE :  BASE_SIGN_PREFIX ('o'|'O') ;
+fragment HEX_BASE :  BASE_SIGN_PREFIX ('h'|'H') ;
+fragment DECIMAL_BASE : BASE_SIGN_PREFIX ('d'|'D') ;
+fragment NON_ZERO_UNSIGNED_NUMBER : [1-9]('_' | DECIMAL_DIGIT)* ;
 
 DECIMAL_NUMBER : UNSIGNED_NUMBER ; //TODO: add based numbers
-INTEGRAL_NUMBER : OCTAL_NUMBER | BINARY_NUMBER | HEX_NUMBER | DECIMAL_NUMBER ;
+SIZE : NON_ZERO_UNSIGNED_NUMBER ;
+fragment BINARY_NUMBER :  SIZE?  BINARY_BASE BINARY_VALUE ;
+fragment OCTAL_NUMBER : SIZE? OCTAL_BASE OCTAL_VALUE ;
+fragment HEX_NUMBER : SIZE? HEX_BASE HEX_VALUE ;
+
+
+fragment INTEGRAL_NUMBER : OCTAL_NUMBER | BINARY_NUMBER | HEX_NUMBER | DECIMAL_NUMBER ;
 NUMBER : INTEGRAL_NUMBER ; //TODO: | REAL_NUMBER
 
-STRING_LITERAL : '"'ANY_ASCII_CHARACTER*'"';
-ANY_ASCII_CHARACTER : '[\u0000-\u007f]';
+fragment ANY_ASCII_CHARACTER : [\u0000-\u007f] ;
+STRING_LITERAL : '"'ANY_ASCII_CHARACTER*'"' ;
 
 IMPLIES : '->';
 TRIPLE_AMPERSAND : '&&&' ;
@@ -170,5 +177,6 @@ BINARY_OPERATOR_11 : '||' ;
 BINARY_OPERATOR_12 : IMPLIES | '<->' ;
 INC_OR_DEC_OPERATOR : '++' | '--' ;
 ASSIGNMENT_OPERATOR : '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>>=' | '<<<=' | '>>>=' ;
+
 //IMPORTANT: ALWAYS MAKE THIS THE LAST RULE
-ID : '[a-zA-Z_]'('[a-zA-Z_0-9$]')* ;
+ID : [a-zA-Z_][a-zA-Z_0-9$]* ;
