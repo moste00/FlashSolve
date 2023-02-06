@@ -1,22 +1,26 @@
+using System.Runtime.InteropServices;
 using Antlr4.Runtime;
-
 using FlashSolve.parser;
 
-namespace FlashSolve {
-    namespace main {
-        class Parse {   
-            static void Main(String[] args){
-                Console.WriteLine(args[0]);
-
-                var input = new AntlrFileStream(args[0]);
-                var lexer = new SystemVerilogLexer(input);
-                var toks  = new CommonTokenStream(lexer);
-                var parser = new SystemVerilogParser(toks);
-                
-                var tree = parser.BuildParseTree;
-
-                var visitor = new CSTVisitor();
+namespace FlashSolve.main {
+    static class Parse {   
+        static void Main(String[] args){
+            if (args.Length != 1) {
+                PrintUsage();
+                return;
             }
+            var input = new AntlrFileStream(args[0]);
+            var lexer = new SystemVerilogLexer(input);
+            var toks  = new CommonTokenStream(lexer);
+            var parser = new SystemVerilogParser(toks) {
+                BuildParseTree = true
+            };
+            var parseTree = parser.svprogram();
+            Console.WriteLine(new CstToAst().Visit(parseTree));
+        }
+
+        private static void PrintUsage() {
+            Console.WriteLine("This is not how any of this works.");
         }
     }
 }

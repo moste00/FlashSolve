@@ -3,5 +3,7 @@ build/
 bin/
 .vscode/
 .antlr/
+.idea/
 gen/
 setup.sh
+grammar-runners/

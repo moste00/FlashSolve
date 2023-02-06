@@ -23,7 +23,7 @@ constraint_prototype : (EXTERN | PURE)? (STATIC)? CONSTRAINT ID
 constraint_decl : (STATIC)? CONSTRAINT ID constraint_block 
                 ;
 
-constraint_block : CURLYOPEN constraint_block_item* CURLYCLOSE
+constraint_block : OPEN_CURLY_BRACE constraint_block_item* CLOSED_CURLY_BRACE
                  ;
 
 constraint_block_item : constraint_expr
@@ -32,53 +32,64 @@ constraint_block_item : constraint_expr
 constraint_expr : (SOFT)? expression_or_dist   
                 | uniqueness_constraint  
                 | expression IMPLIES constraint_set  
-                | IF PARENOPEN expression PARENCLOSE 
+                | IF OPEN_PAREN expression CLOSED_PAREN 
                   constraint_set 
                   (ELSE constraint_set)?
                 ;
-
-uniqueness_constraint : UNIQUE CURLYOPEN open_range_list CURLYCLOSE 
+uniqueness_constraint : UNIQUE OPEN_CURLY_BRACE open_range_list CLOSED_CURLY_BRACE 
                       ;
-
 constraint_set : constraint_expr 
-               | CURLYOPEN constraint_expr* CURLYCLOSE 
+               | OPEN_CURLY_BRACE constraint_expr* CLOSED_CURLY_BRACE 
                ;
-
 expression_or_dist :  expression 
                    ;
-
-expression : primary | UNARYOPERATORS  (attribute_instance)* primary| inside_expression | INCDECOPERATOR 
-           | operator_assignment | expression BINARYOPERATOR (attribute_instance)* expression
-           | conditional_expression| ID  
+expression : primary
+           | OPEN_PAREN operator_assignment CLOSED_PAREN 
+           | UNARY_OPERATOR (attribute_instance)* primary
+           | inc_or_dec_expression 
+           | expression BINARY_OPERATOR_1 (attribute_instance)* expression
+           | expression BINARY_OPERATOR_2 (attribute_instance)* expression
+           | expression BINARY_OPERATOR_3 (attribute_instance)* expression
+           | expression BINARY_OPERATOR_4 (attribute_instance)* expression
+           | expression BINARY_OPERATOR_5 (attribute_instance)* expression
+           | expression BINARY_OPERATOR_6 (attribute_instance)* expression
+           | expression BINARY_OPERATOR_7 (attribute_instance)* expression
+           | expression BINARY_OPERATOR_8 (attribute_instance)* expression
+           | expression BINARY_OPERATOR_9 (attribute_instance)* expression
+           | expression BINARY_OPERATOR_10 (attribute_instance)* expression
+           | expression BINARY_OPERATOR_11 (attribute_instance)* expression
+           | <assoc=right> expression ( MATCHES pattern )? ( TRIPLE_AMPERSAND expression_or_cond_pattern )* QUESTION_MARK (attribute_instance)* expression COLON expression //conditional_expression
+           | <assoc=right> expression INSIDE OPEN_CURLY_BRACE open_range_list CLOSED_CURLY_BRACE //inside_expression 
            ;
-primary : primary_literal;
-primary_literal : number |STINGLITRAL ;
-inside_expression : expression 'inside' '{' open_range_list '}';
-operator_assignment : variable_lvalue assignment_operator expression ;
-conditional_expression : cond_predicate '?' (attribute_instance)* expression ':' expression ;
-number : integral_number | NUMDECIMAL ;
-integral_number : octal_number | binary_number | hex_number ;
-binary_number :  'size'?  BINARYBASE binary_value ;
-octal_number : 'size'? OCTALBASE octal_value ;
-hex_number : 'size'? HEXBASE hex_value ;
-binary_value : BINARYDIGIT ('_' | BINARYDIGIT )*;
-octal_value : OCTALDIGIT ('_' | OCTALDIGIT )*;
-hex_value : HEXDIGIT ('_'| HEXDIGIT )*;
-attribute_instance : '(*' ID ( ',' ID )* '*)';
-//attr_spec ::= attr_name [ = constant_expression ] 
-//attr_name ::= identifier
-cond_predicate : expression_or_cond_pattern ('&&&' expression_or_cond_pattern)*;
+inc_or_dec_expression : INC_OR_DEC_OPERATOR (attribute_instance)* variable_lvalue 
+                      | variable_lvalue (attribute_instance)* INC_OR_DEC_OPERATOR 
+                      ;
+operator_assignment : variable_lvalue ASSIGNMENT_OPERATOR expression 
+                    ;
 expression_or_cond_pattern : cond_pattern | expression ;
-cond_pattern : expression 'matches' pattern ;
-pattern : '.' ID | '.*';
-open_range_list : ID *
+cond_pattern : expression MATCHES pattern 
+             ;
+primary : primary_literal
+        ;
+primary_literal : NUMBER | STRING_LITERAL 
                 ;
+//TODO: See if the supporting attr_spec rule in the formal grammar is relevant and deserve to be included here
+attribute_instance : '(*' ID ( ',' ID )* '*)'
+                   ;
+pattern : DOT ID 
+        | DOT_STAR
+        ;
+open_range_list : value_range (COMMA value_range)*  
+                ;
+value_range : expression
+            | OPEN_SQUARE_BRACKET expression COLON expression CLOSED_SQUARE_BRACKET
+            ;
 variable_lvalue : ID
                 ;
 /* ********************************************************** Data Declarations ****************************************************************** */
 class_data_decl : (RAND | RANDC)? data_type ID 
                 ;
-data_type : BIT  (SEQBRACKETOPEN NUMDECIMAL COLON NUMDECIMAL SEQBRACKETCLOSE)?
+data_type : BIT  (OPEN_SQUARE_BRACKET UNSIGNED_NUMBER COLON UNSIGNED_NUMBER CLOSED_SQUARE_BRACKET)?
           ;
 /* ********************************************************** Terminals  ******************************************************************* */
 CLASS : 'class';
@@ -94,30 +105,70 @@ PURE : 'pure';
 STATIC : 'static';
 RAND : 'rand';
 RANDC : 'randc';
-SEMICOLON : ';';
-COLON : ':';
-CURLYOPEN : '{';
-CURLYCLOSE : '}';
-PARENOPEN : '(';
-PARENCLOSE : ')';
-SEQBRACKETOPEN : '[';
-SEQBRACKETCLOSE : ']';
+INSIDE : 'inside' ;
+MATCHES : 'matches' ; 
+
+SEMICOLON : ';' ;
+COLON : ':' ;
+COMMA : ',' ;
+OPEN_CURLY_BRACE : '{';
+CLOSED_CURLY_BRACE : '}';
+OPEN_PAREN : '(';
+CLOSED_PAREN : ')';
+OPEN_SQUARE_BRACKET : '[';
+CLOSED_SQUARE_BRACKET : ']';
+QUESTION_MARK : '?';
+DOT : '.'  ;
+DOT_STAR : '.*' ;
+
+BINARY_DIGIT : '[01xzXZ]' ;
+OCTAL_DIGIT : '[0-7xzXZ]' ;
+DECIMAL_DIGIT : '[0-9]' ;
+HEX_DIGIT : '[0-9a-fA-FxzXZ]';
+BINARY_VALUE : BINARY_DIGIT ('_' | BINARY_DIGIT)* ;
+OCTAL_VALUE  : OCTAL_DIGIT ('_' | OCTAL_DIGIT)* ;
+UNSIGNED_NUMBER : DECIMAL_DIGIT ('_'| DECIMAL_DIGIT )* ;
+HEX_VALUE : HEX_DIGIT ('_'| HEX_DIGIT )* ;
+
+BASE_SIGN_PREFIX : '\'' ('s'|'S')? ;
+BINARY_BASE : BASE_SIGN_PREFIX ('b'|'B') ;
+OCTAL_BASE :  BASE_SIGN_PREFIX ('o'|'O') ;
+HEX_BASE :  BASE_SIGN_PREFIX ('h'|'H') ;
+DECIMAL_BASE : BASE_SIGN_PREFIX ('d'|'D') ;
+
+NON_ZERO_UNSIGNED_NUMBER : '[1-9]'('_' | DECIMAL_DIGIT)* ;
+SIZE : NON_ZERO_UNSIGNED_NUMBER ;
+BINARY_NUMBER :  SIZE?  BINARY_BASE BINARY_VALUE ;
+OCTAL_NUMBER : SIZE? OCTAL_BASE OCTAL_VALUE ;
+HEX_NUMBER : SIZE? HEX_BASE HEX_VALUE ;
+
+DECIMAL_NUMBER : UNSIGNED_NUMBER ; //TODO: add based numbers
+INTEGRAL_NUMBER : OCTAL_NUMBER | BINARY_NUMBER | HEX_NUMBER | DECIMAL_NUMBER ;
+NUMBER : INTEGRAL_NUMBER ; //TODO: | REAL_NUMBER
+
+STRING_LITERAL : '"'ANY_ASCII_CHARACTER*'"';
+ANY_ASCII_CHARACTER : '[\u0000-\u007f]';
+
 IMPLIES : '->';
-NUMDECIMAL : '[0-9]+';
-BINARYBASE : '\'(\S|\s)?b|\'(\S|\s)?B';
-OCTALBASE : '\'(\S|\s)?o|\'(\S|\s)?O';
-HEXBASE : '\'(\S|\s)?h|\'(\S|\s)?H';
-BINARYDIGIT : '[01xzXZ]';
-OCTALDIGIT : '[0-7xzXZ]';
-HEXDIGIT : '[0-9a-fA-FxzXZ]';
-STINGLITRAL : '\S*';
-UNARYOPERATORS : '+' | '-' | '!' | '~' | '&' | '~&' | '|' | '~|' | '^' | '~^' | '^~';
-BINARYOPERATOR : '+' | '-' | '*' | '/' | '%' | '==' | '!=' | '===' | '!==' | '==?' | '!=?' | '&&' | '||' | '**'
-| '<' | '<=' | '>' | '>=' | '&' | '|' | '^' | '^~' | '~^' | '>>' | '<<' | '>>>' | '<<<'
-| '->' | '<->';
-INCDECOPERATOR : '++' | '--';
-assignment_operator : '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>>=' | '<<<=' | '>>>=';
-//unary_module_path_operator : ! | ~ | & | ~& | | | ~| | ^ | ~^ | ^~;
-//binary_module_path_operator : == | != | && | || | & | | | ^ | ^~ | ~^;
+TRIPLE_AMPERSAND : '&&&' ;
+BITWISE_AND : '&' ;
+BITWISE_OR  : '|' ;
+BITWISE_XOR_XNOR :  '^' | '^~' | '~^' ;
+UNARY_OPERATOR : '+' | '-' | '!' | '~' | BITWISE_AND | '~&' | BITWISE_OR | '~|' | BITWISE_XOR_XNOR ;
+//BINARY_OPERATOR_n means the binary expression where the operator occurs has precedence n, where 1 is the highest precedence
+BINARY_OPERATOR_1 : '**' ;
+BINARY_OPERATOR_2 : '*' | '/' | '%' ; 
+BINARY_OPERATOR_3 : '+' | '-' ;
+BINARY_OPERATOR_4 : '>>' | '<<' | '>>>' | '<<<' ;
+BINARY_OPERATOR_5 : '<' | '<=' | '>' | '>=' ;
+BINARY_OPERATOR_6 : '==' | '!=' | '===' | '!==' | '==?' | '!=?' ;
+BINARY_OPERATOR_7 : BITWISE_AND ;
+BINARY_OPERATOR_8 : BITWISE_XOR_XNOR ;
+BINARY_OPERATOR_9 : BITWISE_OR ;
+BINARY_OPERATOR_10 : '&&' ;
+BINARY_OPERATOR_11 : '||' ;
+BINARY_OPERATOR_12 : IMPLIES | '<->' ;
+INC_OR_DEC_OPERATOR : '++' | '--' ;
+ASSIGNMENT_OPERATOR : '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>>=' | '<<<=' | '>>>=' ;
 //IMPORTANT: ALWAYS MAKE THIS THE LAST RULE
-ID :  '[a-zA-Z_]'('[a-zA-Z_0-9$]')?;
+ID : '[a-zA-Z_]'('[a-zA-Z_0-9$]')* ;
