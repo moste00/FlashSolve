@@ -1,6 +1,5 @@
-namespace FlashSolve.parser.ast;
+namespace FlashSolve.parser;
 
-public class CstRef
-{
-    
+public interface CstRef {
+    string Name { get; }
 }

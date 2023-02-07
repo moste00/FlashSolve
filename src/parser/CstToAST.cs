@@ -1,8 +1,8 @@
-
 using Antlr4.Runtime.Tree;
 
 namespace FlashSolve.parser {
     class CstToAst : ISystemVerilogVisitor<string> {
+        
         public string Visit(IParseTree tree)
         {
             throw new NotImplementedException();
@@ -113,6 +113,11 @@ namespace FlashSolve.parser {
             throw new NotImplementedException();
         }
 
+        public string VisitHierarchical_identifier(SystemVerilogParser.Hierarchical_identifierContext context)
+        {
+            throw new NotImplementedException();
+        }
+
         public string VisitPrimary_literal(SystemVerilogParser.Primary_literalContext context)
         {
             throw new NotImplementedException();
@@ -151,6 +156,10 @@ namespace FlashSolve.parser {
         public string VisitData_type(SystemVerilogParser.Data_typeContext context)
         {
             throw new NotImplementedException();
+        }
+        
+        private record SvClassCstRef(SystemVerilogParser.Class_declContext ctx) : CstRef {
+            public string Name => ctx.GetChild(1).GetText();
         }
     }
 }
