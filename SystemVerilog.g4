@@ -95,9 +95,6 @@ class_data_decl : (RAND | RANDC)? data_type ID SEMICOLON
 data_type : BIT  (OPEN_SQUARE_BRACKET DECIMAL_NUMBER COLON DECIMAL_NUMBER CLOSED_SQUARE_BRACKET)?
           ;
 /* ********************************************************** Terminals  ************************************************************************* */
-//IMPORTANT: ALWAYS KEEP THIS ABOVE ANY_ASCII_CHARACTER
-WS : [ \t\r\n]+ -> skip ;
-COMMENTS : '//' ~[\r\n]* -> skip ;
 
 CLASS : 'class';
 ENDCLASS : 'endclass';
@@ -178,5 +175,7 @@ BINARY_OPERATOR_12 : IMPLIES | '<->' ;
 INC_OR_DEC_OPERATOR : '++' | '--' ;
 ASSIGNMENT_OPERATOR : '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>>=' | '<<<=' | '>>>=' ;
 
-//IMPORTANT: ALWAYS MAKE THIS THE LAST RULE
+WS : [ \t\r\n]+ -> skip ;
+COMMENTS : '//' ~[\r\n]* -> skip ;
+//IMPORTANT: ALWAYS MAKE THIS COME AFTER ALL KEYWORDS
 ID : [a-zA-Z_][a-zA-Z_0-9$]* ;
