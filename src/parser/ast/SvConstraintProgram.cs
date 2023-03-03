@@ -9,7 +9,7 @@ namespace FlashSolve.parser.ast;
 public class SvConstraintProgram {
     private readonly List<SvClass> _classes ;
 
-    public SvConstraintProgram(int n) => _classes = new List<SvClass>();
+    public SvConstraintProgram() => _classes = new List<SvClass>();
 
     public SvClass this[int i] {
         get => _classes[i];
