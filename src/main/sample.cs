@@ -40,9 +40,11 @@ public static class Sample {
             {"b",new List<int>()},
             {"c",new List<int>()},
             {"hash",new List<int>()},
+            {"duration_in_millis",new List<int>()}
         };
         int numSols = 0;
         var stopwatch = new Stopwatch();
+        TimeSpan inner_time_elapsed = new TimeSpan();
         var otherStopWatch = new Stopwatch();
 
         if (strategy == "NAIVE") {
@@ -51,8 +53,12 @@ public static class Sample {
             
             
             otherStopWatch.Start();
+            stopwatch.Start();
             var result = solver.Check();
+            stopwatch.Stop();
+            inner_time_elapsed = stopwatch.Elapsed;
             while (result == Status.SATISFIABLE) {
+                namesToValues["duration_in_millis"].Add((int)stopwatch.Elapsed.TotalMilliseconds);
                 var model = solver.Model!;
            
                 BoolExpr allVariablesHaveNewValues = null;
@@ -74,9 +80,10 @@ public static class Sample {
                 
                 solver.Add(allVariablesHaveNewValues);
                 
-                stopwatch.Start();
+                stopwatch.Restart();
                 result = solver.Check();
                 stopwatch.Stop();
+                inner_time_elapsed += stopwatch.Elapsed;
                 
                 numSols++;
                 if (limitSols && numSols == limit) {
@@ -100,8 +107,12 @@ public static class Sample {
             optimizer.FromString(hardConstraints.ToString());
             
             otherStopWatch.Start();
+            stopwatch.Start();
             var result = optimizer.Check();
+            stopwatch.Stop();
+            inner_time_elapsed = stopwatch.Elapsed;
             while (result == Status.SATISFIABLE) {
+                namesToValues["duration_in_millis"].Add((int)stopwatch.Elapsed.TotalMilliseconds);
                 hardConstraints.Append("(assert (not (and ");
                 
                 foreach (var con in optimizer.Model.Consts) {
@@ -128,9 +139,10 @@ public static class Sample {
                 optimizer.AssertSoft(ctx.MkEq(c, ctx.MkInt(random.Next(0,1000))),
                                      1,"G");
                 
-                stopwatch.Start();
+                stopwatch.Restart();
                 result = optimizer.Check();
                 stopwatch.Stop();
+                inner_time_elapsed += stopwatch.Elapsed;
                 
                 numSols++;
                 if (limitSols && numSols == limit) {
@@ -164,10 +176,14 @@ public static class Sample {
             
 
             otherStopWatch.Start();
+            stopwatch.Start();
             var result = solver.Check();
+            stopwatch.Stop();
+            inner_time_elapsed = stopwatch.Elapsed;
             int count = 0;
             while (result == Status.SATISFIABLE)
             {
+                namesToValues["duration_in_millis"].Add((int)stopwatch.Elapsed.TotalMilliseconds);
                 if (count == limit)
                     break;
                 else
@@ -202,10 +218,11 @@ public static class Sample {
                 
                 solver.Add(allVariablesHaveNewValues);
                 
-                stopwatch.Start();
+                stopwatch.Restart();
                 result = solver.Check();
                 stopwatch.Stop();
-                
+                inner_time_elapsed += stopwatch.Elapsed;
+
                 numSols++;
                 if (limitSols && numSols == limit) {
                     break;
@@ -214,8 +231,8 @@ public static class Sample {
         }
         otherStopWatch.Stop();
         Console.WriteLine("Done!");
-        Console.WriteLine($"Found {numSols} Solutions in {stopwatch.Elapsed.Minutes} minutes and {stopwatch.Elapsed.Seconds} seconds.");
-        Console.WriteLine($"Total main loop time is {otherStopWatch.Elapsed.Minutes} minutes and {stopwatch.Elapsed.Seconds} seconds.");
+        Console.WriteLine($"Found {numSols} Solutions in {inner_time_elapsed.Minutes} minutes and {inner_time_elapsed.Seconds} seconds.");
+        Console.WriteLine($"Total main loop time is {otherStopWatch.Elapsed.Minutes} minutes and {otherStopWatch.Elapsed.Seconds} seconds.");
         WriteSolsJson(String.Join("",args), namesToValues);
     }
 
@@ -366,7 +383,8 @@ public static class Sample {
         
         content.Append("\n]"); //end values
         content.Append("\n}");//end root dict
-        
-        File.WriteAllText(name+".json",content.ToString());
+
+        var path = "out/sample/" + name + ".json";
+        File.WriteAllText(path,content.ToString());
     }
 }
