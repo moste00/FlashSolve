@@ -14,7 +14,7 @@ public static class FlashSolve {
                 break;
             }
             case "sample": {
-                Sample.SMain(subcommandArgs);
+                Sample.main(subcommandArgs);
                 break;
             }
             default: {
