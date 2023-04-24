@@ -1,5 +1,3 @@
-namespace FlashSolve.parser.ast; 
+namespace flashsolve.parser.ast; 
 
-public interface SvAstNode {
-    
-}
+public interface SvAstNode { }

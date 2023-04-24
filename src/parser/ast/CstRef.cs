@@ -1,4 +1,4 @@
-namespace FlashSolve.parser;
+namespace flashsolve.parser.ast;
 
 public interface CstRef {
     string Name { get; }

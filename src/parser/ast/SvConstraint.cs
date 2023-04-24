@@ -1,4 +1,4 @@
-namespace FlashSolve.parser.ast;
+namespace flashsolve.parser.ast;
 
 public class SvConstraint {
     private CstRef cstnode;

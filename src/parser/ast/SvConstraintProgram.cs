@@ -3,10 +3,9 @@
  * i.e. We are only interested in the subset of SystemVerilog that can specify constraints (classes and interfaces), and we are only interested in representing
  *      and transforming (and ultimately solving) those constraints, not any other aspect of the (huge) SV language.
  */
-namespace FlashSolve.parser.ast;
+namespace flashsolve.parser.ast;
 
-
-public class SvConstraintProgram {
+public class SvConstraintProgram : SvAstRoot {
     private readonly List<SvClass> _classes ;
 
     public SvConstraintProgram() => _classes = new List<SvClass>();
