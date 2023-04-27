@@ -4,30 +4,30 @@ options {
             tokenVocab = SystemVerilogLexer;
         }
 
-svprogram : class_decl+ EOF # ClassDeclration
+svprogram : class_decl+ EOF # Program
           ; 
 
 class_decl : CLASS ID SEMICOLON
              class_item*
-             ENDCLASS (COLON ID)? # ClassItems
+             ENDCLASS (COLON ID)? # ClassDecl
            ;
 
 class_item : class_constraint # ClassConstraint
-           | class_data_decl # ClassDataDeclration
+           | class_data_decl # ClassDataDecl
            ;
 
 /* ********************************************************** Constraints ****************************************************************** */
-class_constraint : constraint_prototype # ClassConstraintPrototype
-                 | constraint_decl   # ClassConstraintDeclration
+class_constraint : constraint_prototype # ConstraintPrototype
+                 | constraint_decl   # ConstraintDecl
                  ;
 
-constraint_prototype : (EXTERN | PURE)? (STATIC)? CONSTRAINT ID # ConstraintIdPrototype
+constraint_prototype : (EXTERN | PURE)? (STATIC)? CONSTRAINT ID # ConstraintPrototypeDecl
                      ;
 
-constraint_decl : (STATIC)? CONSTRAINT ID constraint_block # ConstraintBlockDecl
+constraint_decl : (STATIC)? CONSTRAINT ID constraint_block # ConstraintDeclBody
                 ;
 
-constraint_block : OPEN_CURLY_BRACE constraint_block_item* CLOSED_CURLY_BRACE # ConstraintBlockItems
+constraint_block : OPEN_CURLY_BRACE constraint_block_item* CLOSED_CURLY_BRACE # ConstraintBlock
                  ;
 
 constraint_block_item : constraint_expr # ConstraintExpressionBlockItem

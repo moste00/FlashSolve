@@ -8,12 +8,14 @@ namespace flashsolve.parser.ast;
 public class SvConstraintProgram : SvAstRoot {
     private readonly List<SvClass> _classes ;
 
-    public SvConstraintProgram() => _classes = new List<SvClass>();
+    public SvConstraintProgram() {
+        _classes = new List<SvClass>();
+    } 
 
     public SvClass this[int i] {
         get => _classes[i];
         set => _classes[i] = value;
     }
 
-    public void AddClass(SvClass cls) => _classes.Add(cls);
+    public void Add(SvClass cls) => _classes.Add(cls);
 }

@@ -1,11 +1,11 @@
+namespace flashsolve.main;
+
 using System.Diagnostics;
-using System.Runtime.InteropServices.JavaScript;
 using System.Text;
 using Microsoft.Z3;
 
-namespace flashsolve.main;
 public static class Sample {
-    public static void main(String[] args) {
+    public static void SampleMain(String[] args) {
         var strategy = args[0];
         Boolean limitSols = false;
         int limit = Int32.MaxValue;

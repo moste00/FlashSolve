@@ -31,5 +31,6 @@ public abstract class ArgSpec {
     }
     
     public abstract object Parse(string value);
+    public abstract string[] AllAcceptableValues();
 }
 public class ArgParseFailure : Exception {}

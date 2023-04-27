@@ -1,16 +1,10 @@
-using Antlr4.Runtime;
+using flashsolve.parser.invoker.antlrinvoker;
 
 namespace flashsolve.main;
 
-static class Parse {   
-    public static void ParseMain(String[] args){
-        if (args.Length != 1) {
-            PrintUsage();
-            return;
-        }
-    }
-
-    private static void PrintUsage() {
-        Console.WriteLine("This is not how any of this works.");
+static class Parse {
+    public static void ParseMain(String[] args) {
+        var invoker = new AntlrInvoker();
+        invoker.add_file(args[0]);
     }
 }

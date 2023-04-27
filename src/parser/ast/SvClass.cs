@@ -1,6 +1,6 @@
 namespace flashsolve.parser.ast;
 
-public class SvClass {
+public class SvClass : SvAstRoot {
     private CstRef cstnode;
     private List<SvBitData> _members;
     private List<SvConstraint> _constraints;
