@@ -1,13 +1,22 @@
 namespace flashsolve.parser.ast;
 
-public class SvConstraint {
+public class SvConstraint : SvAstNode {
+    public interface BlockItem : SvAstNode {}
+    public interface Expr : BlockItem {}
+
+    public record Block(List<SvConstraint.BlockItem> items) : SvAstNode;
+
+
     private CstRef cstnode;
-    private List<SvExpr> _items;
+    private SvConstraint.Block _items;
 
     public SvConstraint(CstRef cstnode) {
         this.cstnode = cstnode;
-        _items = new List<SvExpr>();
+        _items = null;
     }
 
-    public void AddItems(SvExpr itm) => _items.Add(itm);
+    public SvConstraint.Block Items {
+            get => _items;
+            set => _items = value;
+    }
 }

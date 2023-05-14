@@ -3,10 +3,10 @@ using flashsolve.parser.ast;
 
 namespace flashsolve.parser.invoker.antlrinvoker;
 
-public class VisitorMethodShouldNotBeCalled : Exception {
-    public VisitorMethodShouldNotBeCalled() {}
-    public VisitorMethodShouldNotBeCalled(string msg) : base(msg) {}
-    public VisitorMethodShouldNotBeCalled(string msg,Exception inner) : base(msg,inner) {}
+public class NonReachableControlFlow : Exception {
+    public NonReachableControlFlow() {}
+    public NonReachableControlFlow(string msg) : base(msg) {}
+    public NonReachableControlFlow(string msg,Exception inner) : base(msg,inner) {}
 }
 public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
     public SvAstNode Visit(IParseTree tree) {
@@ -14,7 +14,7 @@ public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
     }
 
     public SvAstNode VisitChildren(IRuleNode node) {
-        throw new VisitorMethodShouldNotBeCalled("Method VisitChildren is a generic hook that is not needed, you probably made a mistake somewhere");
+        throw new NonReachableControlFlow("Method VisitChildren is a generic hook that is not needed and should never be called, you probably made a mistake somewhere.");
     }
 
     public SvAstNode VisitTerminal(ITerminalNode node) {
@@ -39,11 +39,28 @@ public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
     }
 
     public SvAstNode VisitClassDecl(SystemVerilogParser.ClassDeclContext context) {
-        return new SvClass(MkAntlrCstRef.FromClassDecl(context));
+        var cls = new SvClass(
+            MkAntlrCstRef.FromClassDecl(context)
+        );
+        var items = context.class_item();
+        foreach (var item in items) {
+            var itemAst = item.Accept(this);
+            if (itemAst is SvConstraint constraint) {
+                cls.Add(constraint);
+            }
+            else if (itemAst is SvBitData data) {
+                cls.Add(data);
+            }
+            else {
+                throw new NonReachableControlFlow("Classes can only contain constraints or data definitions, found neither");
+            }
+        }
+
+        return cls;
     }
 
     public SvAstNode VisitClassConstraint(SystemVerilogParser.ClassConstraintContext context) {
-        throw new NotImplementedException();
+        return context.class_constraint().Accept(this);
     }
 
     public SvAstNode VisitClassDataDecl(SystemVerilogParser.ClassDataDeclContext context) {
@@ -51,27 +68,40 @@ public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
     }
 
     public SvAstNode VisitConstraintPrototype(SystemVerilogParser.ConstraintPrototypeContext context) {
-        throw new NotImplementedException();
+        return context.constraint_prototype().Accept(this);
     }
 
     public SvAstNode VisitConstraintDecl(SystemVerilogParser.ConstraintDeclContext context) {
-        throw new NotImplementedException();
+        return context.Accept(this);
     }
 
     public SvAstNode VisitConstraintPrototypeDecl(SystemVerilogParser.ConstraintPrototypeDeclContext context) {
-        throw new NotImplementedException();
+        return new SvConstraint(
+            MkAntlrCstRef.FromContraintPrototype(context)
+        );
     }
 
     public SvAstNode VisitConstraintDeclBody(SystemVerilogParser.ConstraintDeclBodyContext context) {
-        throw new NotImplementedException();
+        var constr = new SvConstraint(
+            MkAntlrCstRef.FromConstraintDecl(context)
+        ) {
+            Items = (SvConstraint.Block) context.constraint_block().Accept(this)
+        };
+        return constr;
     }
 
     public SvAstNode VisitConstraintBlock(SystemVerilogParser.ConstraintBlockContext context) {
-        throw new NotImplementedException();
+        var items = new List<SvConstraint.BlockItem>();
+
+        foreach (var block_item in context.constraint_block_item()) {
+            items.Add((SvConstraint.BlockItem) block_item.Accept(this));
+        }
+
+        return new SvConstraint.Block(items);
     }
 
     public SvAstNode VisitConstraintExpressionBlockItem(SystemVerilogParser.ConstraintExpressionBlockItemContext context) {
-        throw new NotImplementedException();
+        return context.Accept(this);
     }
 
     public SvAstNode VisitExpressionOrDist(SystemVerilogParser.ExpressionOrDistContext context) {

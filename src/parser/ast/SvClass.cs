@@ -11,6 +11,6 @@ public class SvClass : SvAstRoot {
         _constraints = new List<SvConstraint>();
     }
 
-    public void AddMember(SvBitData membr) => _members.Add(membr);
-    public void AddConstraint(SvConstraint constr) => _constraints.Add(constr);
+    public void Add(SvBitData membr) => _members.Add(membr);
+    public void Add(SvConstraint constr) => _constraints.Add(constr);
 }
