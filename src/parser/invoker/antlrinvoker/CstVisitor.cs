@@ -64,7 +64,7 @@ public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
     }
 
     public SvAstNode VisitClassDataDecl(SystemVerilogParser.ClassDataDeclContext context) {
-        throw new NotImplementedException();
+        return context.class_data_decl().Accept(this);
     }
 
     public SvAstNode VisitConstraintPrototype(SystemVerilogParser.ConstraintPrototypeContext context) {
@@ -72,7 +72,7 @@ public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
     }
 
     public SvAstNode VisitConstraintDecl(SystemVerilogParser.ConstraintDeclContext context) {
-        return context.Accept(this);
+        return context.constraint_decl().Accept(this);
     }
 
     public SvAstNode VisitConstraintPrototypeDecl(SystemVerilogParser.ConstraintPrototypeDeclContext context) {
@@ -104,12 +104,13 @@ public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
         return context.Accept(this);
     }
 
-    public SvAstNode VisitExpressionOrDist(SystemVerilogParser.ExpressionOrDistContext context) {
-        throw new NotImplementedException();
+    public SvAstNode VisitExpressionOrDist(SystemVerilogParser.ExpressionOrDistContext context)
+    {
+        return context.expression_or_dist().Accept(this);
     }
 
     public SvAstNode VisitUniquenessConstraint(SystemVerilogParser.UniquenessConstraintContext context) {
-        throw new NotImplementedException();
+        return context.uniqueness_constraint().Accept(this);
     }
 
     public SvAstNode VisitImpliesConstraint(SystemVerilogParser.ImpliesConstraintContext context) {
