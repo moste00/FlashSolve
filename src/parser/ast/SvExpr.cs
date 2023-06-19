@@ -1,4 +1,4 @@
 namespace flashsolve.parser.ast;
 
-public interface SvExpr : SvAstNode { }
+public interface SvExpr : SvExpeOrDist { }
 
