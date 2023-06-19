@@ -1,0 +1,14 @@
+{
+  "testing": {
+    "sampleSize": 50,
+    "timeLimitSecs": 60,
+    "algorithms": {
+      "naive": 1,
+      "maxsmt": 0,
+      "hash": 0
+    }
+  },
+  "output": {
+    "SampleSize": 10
+  }
+}

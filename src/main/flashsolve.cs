@@ -7,7 +7,8 @@ using static Sample;
 public static class FlashSolve {
     enum SubprogramType {
         FlashParser,
-        FlashSampler
+        FlashSampler,
+        FlashSamplerV1
     }
     
     public static void Main(String[] args) {
@@ -17,7 +18,8 @@ public static class FlashSolve {
         var subprogramOption = new EnumArg<SubprogramType>() { Name = "do" };
         subprogramOption
             .Map("parse".To(SubprogramType.FlashParser),
-                 "sample".To(SubprogramType.FlashSampler))    
+                 "sample".To(SubprogramType.FlashSampler),
+                 "samplev1".To(SubprogramType.FlashSamplerV1))    
             .OnParse((sub) => {
                 switch (sub) {
                     case SubprogramType.FlashParser:
@@ -25,6 +27,10 @@ public static class FlashSolve {
                         break;
                     case SubprogramType.FlashSampler:
                         SampleMain(subprogramArgs);
+                        break;
+                    case SubprogramType.FlashSamplerV1:
+                        // should create an object of sampleV1 with the correct configs and constraints
+                        var samplev1_obj = new SampleV1(1);
                         break;
                 }
             })
