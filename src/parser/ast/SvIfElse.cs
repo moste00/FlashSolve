@@ -4,7 +4,7 @@ public class SvIfElse : SvConstraint.Expr
 {
     private SvExpr expr;
     private List<SvConstraint.Expr> _then;
-    private List<SvConstraint.Expr> _else
+    private List<SvConstraint.Expr> _else;
     public SvIfElse(SvExpr expr)
     {
         Expr = expr;

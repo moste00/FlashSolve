@@ -25,6 +25,6 @@ public class SvImplication : SvConstraint.Expr
 
     public void Add(SvConstraint.Expr constraintExpr)
     {
-        _constraint.Add(constraintExpr);
+        _constraintSet.Add(constraintExpr);
     }
 }

@@ -1,3 +1,5 @@
+using Microsoft.Z3;
+
 namespace flashsolve.compiler; 
 
 using flashsolve.parser.ast;
@@ -28,7 +30,7 @@ public static class Sv2Z3Compiler {
         return result;
     }
 
-    public static RandProblem Compile(this SvConstraint constraint) {
+    public static BoolExpr Compile(this SvConstraint constraint) {
         throw new Exception("qwkepqwkep");
     }
 }
