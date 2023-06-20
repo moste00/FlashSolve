@@ -2,14 +2,13 @@
 
 public class SvIfElse : SvConstraint.Expr
 {
+    
     private SvExpr expr;
-    private List<SvConstraint.Expr> _then;
-    private List<SvConstraint.Expr> _else;
-    public SvIfElse(SvExpr expr)
-    {
+    private SvConstraintSet _then;
+    private SvConstraintSet? _else;
+    public SvIfElse(SvExpr expr) {
         Expr = expr;
-        _then = new List<SvConstraint.Expr>();
-        _else = new List<SvConstraint.Expr>();
+        _else = null;
     }
 
     public SvExpr Expr
@@ -24,13 +23,21 @@ public class SvIfElse : SvConstraint.Expr
         }
     }
 
-    public void AddThen(SvConstraint.Expr thenConstraintExpr)
-    {
-        _then.Add(thenConstraintExpr);
+    public SvConstraintSet Then {
+        get {
+            return _then;
+        }
+        set {
+            _then = value;
+        }
     }
-    public void AddElse(SvConstraint.Expr elseConstraintExpr)
-    {
-        _else.Add(elseConstraintExpr);
+
+    public SvConstraintSet Else {
+        get {
+            return _else;
+        }
+        set {
+            _else = value;
+        }
     }
-    
 }

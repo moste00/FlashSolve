@@ -1,0 +1,1 @@
+java -Xmx500M -cp "C:\Users\ahmed\Downloads\antlr-4.11.1-complete.jar" org.antlr.v4.Tool -Dlanguage=CSharp -o ./src/parser/antlr/ SystemVerilogLexer.g4

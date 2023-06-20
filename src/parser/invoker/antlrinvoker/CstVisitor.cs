@@ -114,23 +114,57 @@ public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
     }
 
     public SvAstNode VisitImpliesConstraint(SystemVerilogParser.ImpliesConstraintContext context) {
-        throw new NotImplementedException();
+        var expr = context.expression().Accept(this);
+        
+        SvImplication svImplication = new((SvExpr)expr);
+        
+        var constraintSet = context.constraint_set().Accept(this);
+        
+        svImplication.ConstraintSet = (SvConstraintSet)constraintSet;
+        return svImplication;
     }
 
     public SvAstNode VisitIfThenElseConstraint(SystemVerilogParser.IfThenElseConstraintContext context) {
-        throw new NotImplementedException();
+        var cond = (SvExpr)context.expression().Accept(this);
+
+        var thenAndElse = context.constraint_set();
+        var thenCst = thenAndElse[0];
+        var then = (SvConstraintSet)thenCst.Accept(this);
+        
+        var ifThenElse = new SvIfElse(cond);
+        ifThenElse.Then = then;
+        
+        if (thenAndElse.Length > 1) {
+            var els = (SvConstraintSet)thenAndElse[1].Accept(this);
+            ifThenElse.Else = els;
+        }
+        return ifThenElse;
     }
 
     public SvAstNode VisitOpenRangeList(SystemVerilogParser.OpenRangeListContext context) {
         throw new NotImplementedException();
     }
 
-    public SvAstNode VisitConstraintExpressionSet(SystemVerilogParser.ConstraintExpressionSetContext context) {
-        throw new NotImplementedException();
+    public SvAstNode VisitConstraintExpressionSet(SystemVerilogParser.ConstraintExpressionSetContext context)
+    {
+        var constraintSet = new SvConstraintSet
+        {
+            (SvConstraint.Expr)context.constraint_expr().Accept(this)
+        };
+        return constraintSet;
     }
 
-    public SvAstNode VisitConstraintExpressionsSet(SystemVerilogParser.ConstraintExpressionsSetContext context) {
-        throw new NotImplementedException();
+    public SvAstNode VisitConstraintExpressionsSet(SystemVerilogParser.ConstraintExpressionsSetContext context)
+    {
+        var constraintSet = new SvConstraintSet();
+
+        var constraintExprCsts = context.constraint_expr();
+        foreach (var constraintCst in constraintExprCsts)
+        {
+            constraintSet.Add((SvConstraint.Expr)constraintCst.Accept(this));
+        }
+
+        return constraintSet;
     }
 
     public SvAstNode VisitExprOrDist(SystemVerilogParser.ExprOrDistContext context) {

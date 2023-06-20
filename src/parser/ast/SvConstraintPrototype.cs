@@ -70,4 +70,11 @@ public class SvConstraintPrototype : SvAstNode
             isStatic = value;
         }
     }
+    public CstRef CstNode
+    {
+        get
+        {
+            return cstnode;
+        }
+    }
 }

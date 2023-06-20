@@ -1,30 +1,21 @@
 ﻿namespace flashsolve.parser.ast;
 
-public class SvImplication : SvConstraint.Expr
-{
+public class SvImplication : SvConstraint.Expr {
     private SvExpr expr;
-    private List<SvConstraint.Expr> _constraintSet;
+    private SvConstraintSet _constraintSet;
 
-    public SvImplication(SvExpr expr)
-    {
+    public SvImplication(SvExpr expr) {
         Expr = expr;
-        _constraintSet = new List<SvConstraint.Expr>();
+        _constraintSet = new SvConstraintSet();
     }
 
-    public SvExpr Expr
-    {
-        get
-        {
-            return expr;
-        }
-        set
-        {
-            expr = value;
-        }
+    public SvExpr Expr {
+        get { return expr; }
+        set { expr = value; }
     }
 
-    public void Add(SvConstraint.Expr constraintExpr)
-    {
-        _constraintSet.Add(constraintExpr);
+    public SvConstraintSet ConstraintSet {
+        get { return _constraintSet; }
+        set { _constraintSet = value; }
     }
 }

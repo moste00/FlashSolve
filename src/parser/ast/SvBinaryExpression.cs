@@ -6,7 +6,7 @@ public class SvBinaryExpression : SvExpr
     private SvExpr _right;
     private Op _op;
 
-    SvBinaryExpression(SvExpr l, SvExpr r, Op o) {
+    public SvBinaryExpression(SvExpr l, SvExpr r, Op o) {
         _left = l;
         _right = r;
         _op = o;

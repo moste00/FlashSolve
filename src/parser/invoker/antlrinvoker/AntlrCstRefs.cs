@@ -16,4 +16,8 @@ public static class MkAntlrCstRef {
     public static CstRef FromConstraintDecl(SystemVerilogParser.ConstraintDeclBodyContext decl) {
         return new AntlrCst(decl.ID().GetText());
     }
+
+    public static CstRef FromDataDecl(SystemVerilogParser.DataTypeClassDeclContext decl) {
+        return new AntlrCst(decl.ID().GetText());
+    }
 }
