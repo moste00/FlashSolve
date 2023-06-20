@@ -9,3 +9,4 @@ antlr/
 setup.sh
 grammar-runners/
 text-output/
+test.txt

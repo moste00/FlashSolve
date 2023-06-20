@@ -77,4 +77,5 @@ public class SvConstraintPrototype : SvAstNode
             return cstnode;
         }
     }
+    public string Name => cstnode.Name;
 }
