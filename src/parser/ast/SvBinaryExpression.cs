@@ -16,7 +16,26 @@ public class SvBinaryExpression : SvExpr
         Minus,
         Mul,
         Div,
-        Exp
+        Mod,
+        Exp,
+        LogicalShiftRight,
+        LogicalShiftLeft,
+        ArithmeticShiftRight,
+        ArithmeticShiftLeft,
+        Less,
+        Greater,
+        LessEqual,
+        GreaterEqual,
+        Equal,
+        NotEqual,
+        EqualXZ,
+        NotEqualXZ,
+        BitwiseAnd,
+        BitwiseOr,
+        BitwiseXor,
+        BitwiseXnor,
+        And,
+        Or
     }
 
     public SvExpr Right => _right;
