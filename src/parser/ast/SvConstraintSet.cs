@@ -2,7 +2,5 @@
 
 public class SvConstraintSet : List<SvConstraint.Expr>, SvAstNode
 {
-    public SvConstraintSet() {
-        
-    }
+    public SvConstraintSet() { }
 }

@@ -2,15 +2,13 @@
 
 public class SvUniqueness : SvConstraint.Expr
 {
-    private List<Tuple<SvExpr,SvExpr?>> _expr;
+    private SvOpenRange openRange;
     
-    public SvUniqueness()
-    {
-        _expr = new List<Tuple<SvExpr,SvExpr?>>();
+    public SvUniqueness(SvOpenRange openRange) {
+        OpenRange = openRange;
     }
-    
-    public void Add(Tuple<SvExpr,SvExpr?> record)
-    {
-        _expr.Add(record);
+    public SvOpenRange OpenRange {
+        get;
+        set;
     }
 }
