@@ -95,6 +95,8 @@ public class Sv2Z3Compiler {
         if (exp is SvExprOrDist exOrDist) {
             return Compile(exOrDist);
         }
+        //TODO add other classes that inherit from SvConstraint.Expr
+        
         UnrecognizedAstNode.Throw(exp);
         //unreachable
         return (null, null);
@@ -114,7 +116,7 @@ public class Sv2Z3Compiler {
             return Compile(be);
         }
 
-        if (ex is SvUnary ue) {
+        if (ex is SvUnaryExpression ue) {
             return Compile(ue);
         }
 
@@ -220,7 +222,7 @@ public class Sv2Z3Compiler {
 
     
 
-    public (Z3Expr, HashSet<string>) Compile(SvUnary un) {
+    public (Z3Expr, HashSet<string>) Compile(SvUnaryExpression un) {
         return (null, null);
     }
     public (Z3Expr, HashSet<string>) Compile(SvPrimary prim) {
