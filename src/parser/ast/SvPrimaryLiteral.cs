@@ -1,5 +1,5 @@
 ﻿namespace flashsolve.parser.ast; 
 
-public interface SvPrimaryLiteral : SvPrimary{
+public interface SvPrimaryLiteral : SvPrimary {
     
 }
