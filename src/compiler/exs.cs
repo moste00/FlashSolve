@@ -26,7 +26,7 @@ public class UnrecognizedAstPropertyValue : Exception {
     }
 }
 
-public class UnsupportedOperation: Exception {
+public class UnsupportedOperation : Exception {
     public UnsupportedOperation() { }
     public UnsupportedOperation(string msg) : base(msg) { }
     public UnsupportedOperation(string msg, Exception inner) : base(msg, inner) { }
