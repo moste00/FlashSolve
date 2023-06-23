@@ -1,6 +1,6 @@
 ﻿namespace flashsolve.parser.ast; 
 
-public class SvHierarchicalId {
+public class SvHierarchicalId : SvPrimary {
     private List<string> _hierarchicalIds;
 
     public SvHierarchicalId() {

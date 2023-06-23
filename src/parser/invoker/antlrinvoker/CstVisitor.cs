@@ -8,6 +8,11 @@ public class NonReachableControlFlow : Exception {
     public NonReachableControlFlow(string msg) : base(msg) {}
     public NonReachableControlFlow(string msg,Exception inner) : base(msg,inner) {}
 }
+public class IllegalExpression : Exception {
+    public IllegalExpression() {}
+    public IllegalExpression(string msg) : base(msg) {}
+    public IllegalExpression(string msg,Exception inner) : base(msg,inner) {}
+}
 public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
     public SvAstNode Visit(IParseTree tree) {
         return tree.Accept(this);
@@ -45,14 +50,15 @@ public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
         var items = context.class_item();
         foreach (var item in items) {
             var itemAst = item.Accept(this);
-            if (itemAst is SvConstraint constraint) {
-                cls.Add(constraint);
-            }
-            else if (itemAst is SvBitData data) {
-                cls.Add(data);
-            }
-            else {
-                throw new NonReachableControlFlow("Classes can only contain constraints or data definitions, found neither");
+            switch (itemAst) {
+                case SvConstraint constraint:
+                    cls.Add(constraint);
+                    break;
+                case SvBitData data:
+                    cls.Add(data);
+                    break;
+                default:
+                    throw new NonReachableControlFlow("Classes can only contain constraints or data definitions, found neither");
             }
         }
 
@@ -190,11 +196,11 @@ public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
     }
 
     public SvAstNode VisitIncOrDecExpression(SystemVerilogParser.IncOrDecExpressionContext context) {
-        throw new NotImplementedException();
+        return context.inc_or_dec_expression().Accept(this);
     }
 
     public SvAstNode VisitPrimaryExpression(SystemVerilogParser.PrimaryExpressionContext context) {
-        throw new NotImplementedException();
+        return context.primary().Accept(this);
     }
 
     public SvAstNode VisitAndOperator(SystemVerilogParser.AndOperatorContext context) {
@@ -208,45 +214,62 @@ public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
     public SvAstNode VisitMulDivModOperator(SystemVerilogParser.MulDivModOperatorContext context) {
         var left = (SvExpr)context.expression()[0].Accept(this);
         var right = (SvExpr)context.expression()[1].Accept(this);
-        var op = context.GetText();
-        SvBinaryExpression.Op finalOp = SvBinaryExpression.Op.Mul; 
-        if (op == "*") {
-            finalOp = SvBinaryExpression.Op.Mul;
-        }
-        else if (op == "/") {
-            finalOp = SvBinaryExpression.Op.Div;
-        }
-        else if (op == "%") {
-            finalOp = SvBinaryExpression.Op.Mod;
+        var op = context.BINARY_OPERATOR_2().GetText();
+        SvBinaryExpression.Op finalOp; 
+        switch (op) {
+            case "*":
+                finalOp = SvBinaryExpression.Op.Mul;
+                break;
+            case "/":
+                finalOp = SvBinaryExpression.Op.Div;
+                break;
+            case "%":
+                finalOp = SvBinaryExpression.Op.Mod;
+                break;
+            default:
+                throw new NonReachableControlFlow($"This operator is unrecognized (operator {op})");
         }
         SvBinaryExpression binaryExpression = new SvBinaryExpression(left, right, finalOp);
         return binaryExpression;
     }
 
     public SvAstNode VisitConditionalExpression(SystemVerilogParser.ConditionalExpressionContext context) {
-        throw new NotImplementedException();
+        var exprs = context.expression();
+        var then = (SvExpr)exprs.Last().Accept(this);
+        var els = (SvExpr)exprs[exprs.Length - 2].Accept(this);
+        SvConditionalExpression condExpr = new SvConditionalExpression(then, els);
+        for (int i = 0; i < exprs.Length - 2; i++) {
+            var item = (SvExpr)context.expression()[i].Accept(this);
+            condExpr.Add(item);
+        }
+
+        return condExpr;
     }
 
     public SvAstNode VisitAssignmentOperator(SystemVerilogParser.AssignmentOperatorContext context) {
-        throw new NotImplementedException();
+        throw new IllegalExpression("Assignment operator is not supported inside constraint expression");
     }
 
     public SvAstNode VisitEqualityOperators(SystemVerilogParser.EqualityOperatorsContext context) {
         var left = (SvExpr)context.expression()[0].Accept(this);
         var right = (SvExpr)context.expression()[1].Accept(this);
-        var op = context.GetText();
-        SvBinaryExpression.Op finalOp = SvBinaryExpression.Op.Equal; 
-        if (op == "==") {
-            finalOp = SvBinaryExpression.Op.Equal;
-        }
-        else if (op == "!=") {
-            finalOp = SvBinaryExpression.Op.NotEqual;
-        }
-        else if (op == "===") {
-            finalOp = SvBinaryExpression.Op.EqualXZ;
-        }
-        else if (op == "!==") {
-            finalOp = SvBinaryExpression.Op.NotEqualXZ;
+        var op = context.BINARY_OPERATOR_6().GetText();
+        SvBinaryExpression.Op finalOp; 
+        switch (op) {
+            case "==":
+                finalOp = SvBinaryExpression.Op.Equal;
+                break;
+            case "!=":
+                finalOp = SvBinaryExpression.Op.NotEqual;
+                break;
+            case "===":
+                finalOp = SvBinaryExpression.Op.EqualXZ;
+                break;
+            case "!==":
+                finalOp = SvBinaryExpression.Op.NotEqualXZ;
+                break;
+            default:
+                throw new NonReachableControlFlow($"This operator is unrecognized (operator {op})");
         }
         SvBinaryExpression binaryExpression = new SvBinaryExpression(left, right, finalOp);
         return binaryExpression;
@@ -263,13 +286,17 @@ public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
     public SvAstNode VisitAddSubOperator(SystemVerilogParser.AddSubOperatorContext context) {
         var left = (SvExpr)context.expression()[0].Accept(this);
         var right = (SvExpr)context.expression()[1].Accept(this);
-        var op = context.GetText();
-        SvBinaryExpression.Op finalOp = SvBinaryExpression.Op.Plus; 
-        if (op == "+") {
-            finalOp = SvBinaryExpression.Op.Plus;
-        }
-        else if (op == "-") {
-            finalOp = SvBinaryExpression.Op.Minus;
+        var op = context.BINARY_OPERATOR_3().GetText();
+        SvBinaryExpression.Op finalOp; 
+        switch (op) {
+            case "+":
+                finalOp = SvBinaryExpression.Op.Plus;
+                break;
+            case "-":
+                finalOp = SvBinaryExpression.Op.Minus;
+                break;
+            default:
+                throw new NonReachableControlFlow($"This operator is unrecognized (operator {op})");
         }
 
         SvBinaryExpression binaryExpression = new SvBinaryExpression(left, right, finalOp);
@@ -279,19 +306,23 @@ public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
     public SvAstNode VisitComparisonOperators(SystemVerilogParser.ComparisonOperatorsContext context) {
         var left = (SvExpr)context.expression()[0].Accept(this);
         var right = (SvExpr)context.expression()[1].Accept(this);
-        var op = context.GetText();
-        SvBinaryExpression.Op finalOp = SvBinaryExpression.Op.Less; 
-        if (op == "<") {
-            finalOp = SvBinaryExpression.Op.Less;
-        }
-        else if (op == ">") {
-            finalOp = SvBinaryExpression.Op.Greater;
-        }
-        else if (op == "<=") {
-            finalOp = SvBinaryExpression.Op.LessEqual;
-        }
-        else if (op == ">=") {
-            finalOp = SvBinaryExpression.Op.GreaterEqual;
+        var op = context.BINARY_OPERATOR_5().GetText();
+        SvBinaryExpression.Op finalOp; 
+        switch (op) {
+            case "<":
+                finalOp = SvBinaryExpression.Op.Less;
+                break;
+            case ">":
+                finalOp = SvBinaryExpression.Op.Greater;
+                break;
+            case "<=":
+                finalOp = SvBinaryExpression.Op.LessEqual;
+                break;
+            case ">=":
+                finalOp = SvBinaryExpression.Op.GreaterEqual;
+                break;
+            default:
+                throw new NonReachableControlFlow($"This operator is unrecognized (operator {op})");
         }
         SvBinaryExpression binaryExpression = new SvBinaryExpression(left, right, finalOp);
         return binaryExpression;
@@ -308,124 +339,224 @@ public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
     public SvAstNode VisitBitWiseXorXnorOperator(SystemVerilogParser.BitWiseXorXnorOperatorContext context) {
         var left = (SvExpr)context.expression()[0].Accept(this);
         var right = (SvExpr)context.expression()[1].Accept(this);
-        var op = context.GetText();
-        SvBinaryExpression.Op finalOp = SvBinaryExpression.Op.BitwiseXor; 
-        if (op == "^") {
-            finalOp = SvBinaryExpression.Op.BitwiseXor;
-        }
-        else if (op == "~^" || op == "^~") {
-            finalOp = SvBinaryExpression.Op.BitwiseXnor;
+        var op = context.BINARY_OPERATOR_8().GetText();
+        SvBinaryExpression.Op finalOp; 
+        switch (op) {
+            case "^":
+                finalOp = SvBinaryExpression.Op.BitwiseXor;
+                break;
+            case "~^":
+            case "^~":
+                finalOp = SvBinaryExpression.Op.BitwiseXnor;
+                break;
+            default:
+                throw new NonReachableControlFlow($"This operator is unrecognized (operator {op})");
         }
         SvBinaryExpression binaryExpression = new SvBinaryExpression(left, right, finalOp);
         return binaryExpression;
     }
 
     public SvAstNode VisitUnaryOperator(SystemVerilogParser.UnaryOperatorContext context) {
-        throw new NotImplementedException();
+        var op = context.UNARY_OPERATOR().GetText();
+        var primary = (SvPrimary)context.primary().Accept(this);
+        SvUnary.UnaryOP finalOp;
+        switch (op) {
+            case "+":
+                finalOp = SvUnary.UnaryOP.Plus;
+                break;
+            case "-":
+                finalOp = SvUnary.UnaryOP.Minus;
+                break;
+            case "!":
+                finalOp = SvUnary.UnaryOP.Negation;
+                break;
+            case "~":
+                finalOp = SvUnary.UnaryOP.Complement;
+                break;
+            case "&":
+                finalOp = SvUnary.UnaryOP.BitwiseAnd;
+                break;
+            case "|":
+                finalOp = SvUnary.UnaryOP.BitwiseOr;
+                break;
+            case "~&":
+                finalOp = SvUnary.UnaryOP.BitwiseNand;
+                break;
+            case "~|":
+                finalOp = SvUnary.UnaryOP.BitwiseNor;
+                break;
+            case "~^":
+                finalOp = SvUnary.UnaryOP.Xnor;
+                break;
+            case "^~":
+                finalOp = SvUnary.UnaryOP.Xor;
+                break;
+            default:
+                throw new NonReachableControlFlow($"This operator is unrecognized (operator {op})");
+        }
+        SvUnary unary = new SvUnary(primary, finalOp);
+        return unary;
     }
 
     public SvAstNode VisitShiftOperators(SystemVerilogParser.ShiftOperatorsContext context) {
         var left = (SvExpr)context.expression()[0].Accept(this);
         var right = (SvExpr)context.expression()[1].Accept(this);
-        var op = context.GetText();
-        SvBinaryExpression.Op finalOp = SvBinaryExpression.Op.LogicalShiftLeft; 
-        if (op == "<<") {
-            finalOp = SvBinaryExpression.Op.LogicalShiftLeft;
-        }
-        else if (op == ">>") {
-            finalOp = SvBinaryExpression.Op.LogicalShiftRight;
-        }
-        else if (op == "<<<") {
-            finalOp = SvBinaryExpression.Op.ArithmeticShiftLeft;
-        }
-        else if (op == ">>>") {
-            finalOp = SvBinaryExpression.Op.ArithmeticShiftRight;
+        var op = context.BINARY_OPERATOR_4().GetText();
+        SvBinaryExpression.Op finalOp; 
+        switch (op) {
+            case "<<":
+                finalOp = SvBinaryExpression.Op.LogicalShiftLeft;
+                break;
+            case ">>":
+                finalOp = SvBinaryExpression.Op.LogicalShiftRight;
+                break;
+            case "<<<":
+                finalOp = SvBinaryExpression.Op.ArithmeticShiftLeft;
+                break;
+            case ">>>":
+                finalOp = SvBinaryExpression.Op.ArithmeticShiftRight;
+                break;
+            default:
+                throw new NonReachableControlFlow($"This operator is unrecognized (operator {op})");
         }
         SvBinaryExpression binaryExpression = new SvBinaryExpression(left, right, finalOp);
         return binaryExpression;
     }
 
     public SvAstNode VisitInsideExpression(SystemVerilogParser.InsideExpressionContext context) {
-        throw new NotImplementedException();
+        var expr = (SvExpr)context.expression().Accept(this);
+        SvInsideExpression insideExpression = new SvInsideExpression(expr);
+        var openRange = (SvOpenRange)context.open_range_list().Accept(this);
+        insideExpression.OpenRange = openRange;
+        return insideExpression;
     }
 
     public SvAstNode VisitPrefix(SystemVerilogParser.PrefixContext context) {
-        throw new NotImplementedException();
+        var variableId = (SvVariableLvalue)context.variable_lvalue().Accept(this);
+        
+        SvIncOrDecExpr incOrDecExpr = new SvIncOrDecExpr(variableId, true);
+        return incOrDecExpr;
     }
 
     public SvAstNode VisitPostfix(SystemVerilogParser.PostfixContext context) {
-        throw new NotImplementedException();
+        var variableId = (SvVariableLvalue)context.variable_lvalue().Accept(this);
+        
+        SvIncOrDecExpr incOrDecExpr = new SvIncOrDecExpr(variableId, false);
+        return incOrDecExpr;
     }
 
     public SvAstNode VisitAssignmentStatement(SystemVerilogParser.AssignmentStatementContext context) {
-        throw new NotImplementedException();
+        throw new NonReachableControlFlow("You can't assign variables inside constraint block");
     }
 
     public SvAstNode VisitConditionalPattern(SystemVerilogParser.ConditionalPatternContext context) {
-        throw new NotImplementedException();
+        return context.cond_pattern().Accept(this);
     }
 
     public SvAstNode VisitExprOrCond(SystemVerilogParser.ExprOrCondContext context) {
-        throw new NotImplementedException();
+        return context.expression().Accept(this);
     }
 
     public SvAstNode VisitMatchesPattern(SystemVerilogParser.MatchesPatternContext context) {
-        throw new NotImplementedException();
+        throw new NonReachableControlFlow("Match is not supported");
     }
 
     public SvAstNode VisitPrimaryLiteral(SystemVerilogParser.PrimaryLiteralContext context) {
-        throw new NotImplementedException();
+        return context.Accept(this);
     }
 
     public SvAstNode VisitHierarchicalIdentifier(SystemVerilogParser.HierarchicalIdentifierContext context) {
-        throw new NotImplementedException();
+        return context.hierarchical_identifier().Accept(this);
     }
 
     public SvAstNode VisitHierarchicalId(SystemVerilogParser.HierarchicalIdContext context) {
-        throw new NotImplementedException();
+        SvHierarchicalId hierarchicalId = new SvHierarchicalId();
+        var id = context.ID().GetText();
+        hierarchicalId.Add(id);
+        return hierarchicalId;
     }
 
     public SvAstNode VisitNumberPrimaryLit(SystemVerilogParser.NumberPrimaryLitContext context) {
-        throw new NotImplementedException();
+        SvNumLiteral numberLit = new SvNumLiteral();
+        var num = context.NUMBER().GetText();
+        numberLit.Number = num;
+        return numberLit;
     }
 
     public SvAstNode VisitStringPrimaryLit(SystemVerilogParser.StringPrimaryLitContext context) {
-        throw new NotImplementedException();
+        SvStringLiteral stringLit = new SvStringLiteral();
+        var num = context.STRING_LITERAL().GetText();
+        stringLit.StringLiteral = num;
+        return stringLit;
     }
 
     public SvAstNode VisitAttributeInstance(SystemVerilogParser.AttributeInstanceContext context) {
-        throw new NotImplementedException();
+        throw new NonReachableControlFlow("Attribute instance is not reachable.");
     }
 
     public SvAstNode VisitDotIdPattern(SystemVerilogParser.DotIdPatternContext context) {
-        throw new NotImplementedException();
+        throw new NonReachableControlFlow("Dot ID is non reachable.");
     }
 
     public SvAstNode VisitDotStarPattern(SystemVerilogParser.DotStarPatternContext context) {
-        throw new NotImplementedException();
+        throw new NonReachableControlFlow("DotStar is non reachable.");
     }
 
     public SvAstNode VisitValueRanges(SystemVerilogParser.ValueRangesContext context) {
-        throw new NotImplementedException();
+        var ranges = context.value_range();
+        SvOpenRange openRange = new SvOpenRange();
+        foreach (var range in ranges) {
+            var item = range.Accept(this);
+            openRange.Add((SvValueRange)item);
+        }
+
+        return openRange;
     }
 
     public SvAstNode VisitExprValRange(SystemVerilogParser.ExprValRangeContext context) {
-        throw new NotImplementedException();
+        var expr = (SvExpr)context.expression().Accept(this);
+        SvValueRange valueRange = new SvValueRange(expr, null);
+        return valueRange;
     }
 
     public SvAstNode VisitOpenRange(SystemVerilogParser.OpenRangeContext context) {
-        throw new NotImplementedException();
+        var expressions = context.expression();
+        var expr1 = (SvExpr)expressions[0].Accept(this);
+        var expr2 = (SvExpr)expressions[1].Accept(this);
+        SvValueRange valueRange = new SvValueRange(expr1, expr2);
+        return valueRange;
     }
 
     public SvAstNode VisitLVariableId(SystemVerilogParser.LVariableIdContext context) {
-        throw new NotImplementedException();
+        SvVariableLvalue varLvalue = new SvVariableLvalue();
+        var id = context.ID().GetText();
+        varLvalue.Id = id;
+        return varLvalue;
     }
 
     public SvAstNode VisitDataTypeClassDecl(SystemVerilogParser.DataTypeClassDeclContext context) {
-        throw new NotImplementedException();
+        var cstNode = MkAntlrCstRef.FromDataDecl(context);
+        SvBitData bitData = (SvBitData)context.data_type().Accept(this);
+        bitData.CstNode = cstNode;
+        var rand = context.RAND().GetText();
+        var randc = context.RANDC().GetText();
+        if (rand != null) {
+            bitData.Rand = SvBitData.Random.rand;
+        }
+        else if (randc != null) {
+            bitData.Rand = SvBitData.Random.randc;
+        }
+        else {
+            bitData.Rand = SvBitData.Random.notRand;
+        }
+
+        return bitData;
     }
 
     public SvAstNode VisitBitDataType(SystemVerilogParser.BitDataTypeContext context) {
-        throw new NotImplementedException();
+        var startIndex = uint.Parse(context.DECIMAL_NUMBER()[1].GetText());
+        var endIndex = uint.Parse(context.DECIMAL_NUMBER()[0].GetText());
+        SvBitData bitData = new SvBitData(startIndex, endIndex);
+        return bitData;
     }
 }

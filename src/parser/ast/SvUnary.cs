@@ -13,6 +13,7 @@ public class SvUnary : SvExpr
     public enum UnaryOP {
         Plus,
         Minus,
+        Negation,
         Complement,
         BitwiseAnd,
         BitwiseNand,
