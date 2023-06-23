@@ -107,7 +107,7 @@ public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
     }
 
     public SvAstNode VisitConstraintExpressionBlockItem(SystemVerilogParser.ConstraintExpressionBlockItemContext context) {
-        return context.Accept(this);
+        return context.constraint_expr().Accept(this);
     }
 
     public SvAstNode VisitExpressionOrDist(SystemVerilogParser.ExpressionOrDistContext context)
@@ -359,43 +359,43 @@ public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
     public SvAstNode VisitUnaryOperator(SystemVerilogParser.UnaryOperatorContext context) {
         var op = context.UNARY_OPERATOR().GetText();
         var primary = (SvPrimary)context.primary().Accept(this);
-        SvUnary.UnaryOP finalOp;
+        SvUnaryExpression.UnaryOP finalOp;
         switch (op) {
             case "+":
-                finalOp = SvUnary.UnaryOP.Plus;
+                finalOp = SvUnaryExpression.UnaryOP.Plus;
                 break;
             case "-":
-                finalOp = SvUnary.UnaryOP.Minus;
+                finalOp = SvUnaryExpression.UnaryOP.Minus;
                 break;
             case "!":
-                finalOp = SvUnary.UnaryOP.Negation;
+                finalOp = SvUnaryExpression.UnaryOP.Negation;
                 break;
             case "~":
-                finalOp = SvUnary.UnaryOP.Complement;
+                finalOp = SvUnaryExpression.UnaryOP.Complement;
                 break;
             case "&":
-                finalOp = SvUnary.UnaryOP.BitwiseAnd;
+                finalOp = SvUnaryExpression.UnaryOP.BitwiseAnd;
                 break;
             case "|":
-                finalOp = SvUnary.UnaryOP.BitwiseOr;
+                finalOp = SvUnaryExpression.UnaryOP.BitwiseOr;
                 break;
             case "~&":
-                finalOp = SvUnary.UnaryOP.BitwiseNand;
+                finalOp = SvUnaryExpression.UnaryOP.BitwiseNand;
                 break;
             case "~|":
-                finalOp = SvUnary.UnaryOP.BitwiseNor;
+                finalOp = SvUnaryExpression.UnaryOP.BitwiseNor;
                 break;
             case "~^":
-                finalOp = SvUnary.UnaryOP.Xnor;
+                finalOp = SvUnaryExpression.UnaryOP.Xnor;
                 break;
             case "^~":
-                finalOp = SvUnary.UnaryOP.Xor;
+                finalOp = SvUnaryExpression.UnaryOP.Xor;
                 break;
             default:
                 throw new NonReachableControlFlow($"This operator is unrecognized (operator {op})");
         }
-        SvUnary unary = new SvUnary(primary, finalOp);
-        return unary;
+        SvUnaryExpression unaryExpression = new SvUnaryExpression(primary, finalOp);
+        return unaryExpression;
     }
 
     public SvAstNode VisitShiftOperators(SystemVerilogParser.ShiftOperatorsContext context) {
@@ -462,7 +462,7 @@ public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
     }
 
     public SvAstNode VisitPrimaryLiteral(SystemVerilogParser.PrimaryLiteralContext context) {
-        return context.Accept(this);
+        return context.primary_literal().Accept(this);
     }
 
     public SvAstNode VisitHierarchicalIdentifier(SystemVerilogParser.HierarchicalIdentifierContext context) {

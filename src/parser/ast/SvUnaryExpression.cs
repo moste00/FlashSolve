@@ -1,11 +1,11 @@
 ﻿namespace flashsolve.parser.ast;
 
-public class SvUnary : SvExpr
+public class SvUnaryExpression : SvExpr
 {
     private SvPrimary operand;
     private UnaryOP unaryOP;
 
-    public SvUnary(SvPrimary operand, UnaryOP unaryOP)
+    public SvUnaryExpression(SvPrimary operand, UnaryOP unaryOP)
     {
         Operand = operand;
         OP = unaryOP;

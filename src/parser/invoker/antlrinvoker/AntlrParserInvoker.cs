@@ -17,6 +17,7 @@ class AntlrInvoker : ParserInvoker {
         };
         var parseTree = parser.svprogram();
         var ast = new CstVisitor().Visit(parseTree);
+        Console.WriteLine("done");
     }
 
     public void add_string(string svcode) {

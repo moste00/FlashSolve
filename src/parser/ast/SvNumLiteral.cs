@@ -1,6 +1,6 @@
 ﻿namespace flashsolve.parser.ast; 
 
-public class SvNumLiteral : SvPrimaryLiteral {
+public class SvNumLiteral : SvLiteral {
     private string number;
 
     public SvNumLiteral() { }
