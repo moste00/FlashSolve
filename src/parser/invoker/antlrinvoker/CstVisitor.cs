@@ -538,8 +538,23 @@ public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
         var cstNode = MkAntlrCstRef.FromDataDecl(context);
         SvBitData bitData = (SvBitData)context.data_type().Accept(this);
         bitData.CstNode = cstNode;
-        var rand = context.RAND().GetText();
-        var randc = context.RANDC().GetText();
+        string? rand;
+        try {
+            rand = context.RAND().GetText();
+        }
+        catch (Exception e) {
+            rand = null;
+        }
+        // Console.WriteLine($"rand: {rand}");
+        string? randc;
+        try {
+            randc = context.RANDC().GetText();
+        }
+        catch (Exception e) {
+            randc = null;
+        }
+        // Console.WriteLine($"randc: {randc}");
+
         if (rand != null) {
             bitData.Rand = SvBitData.Random.rand;
         }
@@ -549,7 +564,7 @@ public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
         else {
             bitData.Rand = SvBitData.Random.notRand;
         }
-
+        // Console.WriteLine($"random: {bitData.Rand}");
         return bitData;
     }
 
