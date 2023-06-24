@@ -10,6 +10,8 @@ public class Config
     public bool testing_algorithms_maxsmt;
     public bool testing_algorithms_hash;
     public int output_SampleSize;
+    public bool sampler_timer;
+    public bool sampler_paralization;
     
     
     //constructor
@@ -32,6 +34,13 @@ public class Config
         // Accessing values from the "output" object
         JsonElement output = document.RootElement.GetProperty("output");
         output_SampleSize = output.GetProperty("SampleSize").GetInt32();
+        
+        
+        // Accessing values from the "sampler" object
+        JsonElement sampler = document.RootElement.GetProperty("sampler");
+        sampler_timer = sampler.GetProperty("timer").GetInt32() == 1;
+        sampler_paralization = sampler.GetProperty("paralization").GetInt32() == 1;
+        
 
     }
 }

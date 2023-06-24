@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Text;
 using Microsoft.Z3;
 using flashsolve.util;
+using flashsolve.util.sampleralgorithms;
 
 public class SampleV1
 {
@@ -12,11 +13,11 @@ public class SampleV1
     
     // members
     private Config Configs;
-    private int NumOfOutputs;
+    private uint NumOfOutputs;
     // note: missing: cadidate algorithm, constraints variable
     
     // Constructor
-    public SampleV1(int numOfOutputs)
+    public SampleV1(uint numOfOutputs)
     {
         Configs = new Config(ConfigFilePath);
         NumOfOutputs = numOfOutputs;
@@ -32,6 +33,10 @@ public class SampleV1
     {
         // should run the candidate algorithm with respect to the output configs
         // then writes the output results
+        var sampler = new Naive(Configs, NumOfOutputs);
+        Console.WriteLine("************************************************************************************");
+        sampler.run_naive();
+        Console.WriteLine("************************************************************************************");
     }
 
 

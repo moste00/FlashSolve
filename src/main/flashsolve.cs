@@ -30,7 +30,8 @@ public static class FlashSolve {
                         break;
                     case SubprogramType.FlashSamplerV1:
                         // should create an object of sampleV1 with the correct configs and constraints
-                        var samplev1_obj = new SampleV1(1);
+                        var samplev1_obj = new SampleV1(10);
+                        samplev1_obj.run();
                         break;
                 }
             })

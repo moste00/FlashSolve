@@ -9,6 +9,10 @@
     }
   },
   "output": {
-    "SampleSize": 10
+    "SampleSize": 1000
+  },
+  "sampler": {
+    "timer": 1,
+    "paralization": 0 
   }
 }
