@@ -33,9 +33,9 @@ public class SampleV1
     {
         // should run the candidate algorithm with respect to the output configs
         // then writes the output results
-        var sampler = new Naive(Configs, NumOfOutputs);
+        var sampler = new Hash(Configs, NumOfOutputs);
         Console.WriteLine("************************************************************************************");
-        sampler.run_naive();
+        // sampler.run_naive();
         Console.WriteLine("************************************************************************************");
     }
 

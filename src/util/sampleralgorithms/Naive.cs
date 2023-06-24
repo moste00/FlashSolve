@@ -1,6 +1,5 @@
 namespace flashsolve.util.sampleralgorithms;
 using System.Diagnostics;
-using System.Text;
 using Microsoft.Z3;
 
 public class Naive : Base
@@ -30,9 +29,8 @@ public class Naive : Base
     }
     
     
-    public void run_naive()
+    protected void run_naive_algorithm(uint thresh = 1, uint current_numSols = 0)
     {
-        int numSols = 0;
         var stopwatch = new Stopwatch();
         Status result;
 
@@ -67,13 +65,17 @@ public class Naive : Base
                 
             solver.Add(allVariablesHaveNewValues);
 
-            numSols++;
-            if (numSols == NoOutputs) {
+            current_numSols++;
+            if (current_numSols == NoOutputs || current_numSols == thresh) {
                 break;
             }
         } while (result == Status.SATISFIABLE);
-        
+    }
+
+    public void run_naive()
+    {
+        run_naive_algorithm(NoOutputs);
         print_output_dictionary(namesToValues);
     }
-    
+
 }

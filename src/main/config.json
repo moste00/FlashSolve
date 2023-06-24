@@ -13,6 +13,10 @@
   },
   "sampler": {
     "timer": 1,
-    "paralization": 0 
+    "paralization": 0,
+    "hashConstants": {
+      "hashSize": 12,
+      "bitsCounts": 8
+    }
   }
 }
