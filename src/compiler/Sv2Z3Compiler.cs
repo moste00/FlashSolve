@@ -4,52 +4,36 @@ namespace flashsolve.compiler;
 
 using parser.ast;
 
-public class Z3Expr {
-    public class Bool : Z3Expr {
-        private BoolExpr _e;
-        public Bool(BoolExpr e) {
-            this._e = e;
-        }
-        public BoolExpr Expr => _e;
-        public static implicit operator BoolExpr(Bool b) => b._e;
-    }
-    public class BitVec : Z3Expr {
-        private BitVecExpr _e;
-        public BitVec(BitVecExpr e) {
-            this._e = e;
-        }
-        public BitVecExpr Expr => _e;
-        public static implicit operator BitVecExpr(BitVec bv) => bv._e;
-    }
-
-    public static Bool From(BoolExpr e) => new(e);
-    public static BitVec From(BitVecExpr e) => new(e);
-}
-
 public class Sv2Z3Compiler {
-    private Context z3ctx;
-    private uint uniqueId;
+    private Context _z3Ctx;
+    private RandProblem _currProblem;
     public Sv2Z3Compiler() {
-        z3ctx = new Context();
-        uniqueId = 0;
+        _z3Ctx = new Context();
+        _currProblem = null;
     }
     public RandProblem Compile(SvConstraintProgram prog) {
         var result = new RandProblem();
+        _currProblem = result;
         
         foreach (var cls in prog) {
             var problem = Compile(cls);
             result.Merge(problem);
         }
 
+        _currProblem = null;
         return result;
     }
 
     public RandProblem Compile(SvClass cls) {
         var result = new RandProblem();
+        RandProblem old = _currProblem;
+        _currProblem = result;
+        
         foreach (var dataDef in cls.Members) {
             string varName = $"${cls.Name}#${dataDef.Name}";
-            result.AddVar(varName);
-        }
+            result.AddVar(varName,
+                        _z3Ctx.MkBVConst(varName,dataDef.End - dataDef.Start + 1));
+        }   
 
         foreach (var svConstraint in cls.Constraints) {
             var (constraint, varNames) = Compile(svConstraint);
@@ -60,6 +44,7 @@ public class Sv2Z3Compiler {
             }
         }
 
+        _currProblem = old;
         return result;
     }
 
@@ -77,7 +62,7 @@ public class Sv2Z3Compiler {
         }
 
         return (
-            z3ctx.MkAnd(items), 
+            _z3Ctx.MkAnd(items), 
             constraintVarNames
         );
     }
@@ -94,7 +79,11 @@ public class Sv2Z3Compiler {
 
     public (BoolExpr, HashSet<string>) Compile(SvConstraint.Expr exp) {
         if (exp is SvExprOrDist exOrDist) {
-            return Compile(exOrDist);
+            var (constraintExpr,varNames) = Compile(exOrDist);
+            return (
+                Types.AssertBoolTypeOrFail(constraintExpr),
+                varNames
+            );
         }
         //TODO add other classes that inherit from SvConstraint.Expr
         
@@ -142,14 +131,14 @@ public class Sv2Z3Compiler {
                 var (l, r) = Types.AssertBitVecTypeOrFail(left, right);
                 if (l.Expr.SortSize == r.Expr.SortSize) {
                     return (
-                        Z3Expr.From(z3ctx.MkBVAdd(l, r)),
+                        Z3Expr.From(_z3Ctx.MkBVAdd(l, r)),
                         varNames
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,z3ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
                 return (
-                    Z3Expr.From(z3ctx.MkBVAdd(sameSizeL, sameSizeR)),
+                    Z3Expr.From(_z3Ctx.MkBVAdd(sameSizeL, sameSizeR)),
                     varNames
                 );
             }
@@ -157,14 +146,14 @@ public class Sv2Z3Compiler {
                 var (l, r) = Types.AssertBitVecTypeOrFail(left, right);
                 if (l.Expr.SortSize == r.Expr.SortSize) {
                     return (
-                        Z3Expr.From(z3ctx.MkBVSub(l, r)),
+                        Z3Expr.From(_z3Ctx.MkBVSub(l, r)),
                         varNames
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,z3ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
                 return (
-                    Z3Expr.From(z3ctx.MkBVSub(sameSizeL, sameSizeR)),
+                    Z3Expr.From(_z3Ctx.MkBVSub(sameSizeL, sameSizeR)),
                     varNames
                 );
             }
@@ -172,14 +161,14 @@ public class Sv2Z3Compiler {
                 var (l, r) = Types.AssertBitVecTypeOrFail(left, right);
                 if (l.Expr.SortSize == r.Expr.SortSize) {
                     return (
-                        Z3Expr.From(z3ctx.MkBVMul(l, r)),
+                        Z3Expr.From(_z3Ctx.MkBVMul(l, r)),
                         varNames
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,z3ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
                 return (
-                    Z3Expr.From(z3ctx.MkBVMul(sameSizeL, sameSizeR)),
+                    Z3Expr.From(_z3Ctx.MkBVMul(sameSizeL, sameSizeR)),
                     varNames
                 );
             }
@@ -187,14 +176,14 @@ public class Sv2Z3Compiler {
                 var (l, r) = Types.AssertBitVecTypeOrFail(left, right);
                 if (l.Expr.SortSize == r.Expr.SortSize) {
                     return (
-                        Z3Expr.From(z3ctx.MkBVSDiv(l, r)),
+                        Z3Expr.From(_z3Ctx.MkBVSDiv(l, r)),
                         varNames
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,z3ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
                 return (
-                    Z3Expr.From(z3ctx.MkBVSDiv(sameSizeL, sameSizeR)),
+                    Z3Expr.From(_z3Ctx.MkBVSDiv(sameSizeL, sameSizeR)),
                     varNames
                 );
             }
@@ -202,60 +191,228 @@ public class Sv2Z3Compiler {
                 var (l, r) = Types.AssertBitVecTypeOrFail(left, right);
                 if (l.Expr.SortSize == r.Expr.SortSize) {
                     return (
-                        Z3Expr.From(z3ctx.MkBVSMod(l, r)),
+                        Z3Expr.From(_z3Ctx.MkBVSMod(l, r)),
                         varNames
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,z3ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
                 return (
-                    Z3Expr.From(z3ctx.MkBVSMod(sameSizeL, sameSizeR)),
+                    Z3Expr.From(_z3Ctx.MkBVSMod(sameSizeL, sameSizeR)),
                     varNames
                 );
             }
             case SvBinaryExpression.Op.Exp:
                 throw new UnsupportedOperation("Compiler doesn't currently support compiling exponentiation to Z3 expressions");
             //----------------------------------------------------------------------------------------------------------
-            case SvBinaryExpression.Op.LogicalShiftRight:
-                throw new NotImplementedException("Logical Shift Right");
-            case SvBinaryExpression.Op.LogicalShiftLeft:
+            case SvBinaryExpression.Op.LogicalShiftRight: {
+                var (l, r) = Types.AssertBitVecTypeOrFail(left, right);
+                if (l.Expr.SortSize == r.Expr.SortSize) {
+                    return (
+                        Z3Expr.From(_z3Ctx.MkBVLSHR(l, r)),
+                        varNames
+                    );
+                }
+
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                return (
+                    Z3Expr.From(_z3Ctx.MkBVLSHR(sameSizeL, sameSizeR)),
+                    varNames
+                );
+            }
+            case SvBinaryExpression.Op.LogicalShiftLeft: 
                 throw new NotImplementedException("Logical Shift Left");
-            case SvBinaryExpression.Op.ArithmeticShiftRight:
-                throw new NotImplementedException("Arithmetic Shift Right");
+            case SvBinaryExpression.Op.ArithmeticShiftRight: {
+                var (l, r) = Types.AssertBitVecTypeOrFail(left, right);
+                if (l.Expr.SortSize == r.Expr.SortSize) {
+                    return (
+                        Z3Expr.From(_z3Ctx.MkBVASHR(l, r)),
+                        varNames
+                    );
+                }
+
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                return (
+                    Z3Expr.From(_z3Ctx.MkBVASHR(sameSizeL, sameSizeR)),
+                    varNames
+                );
+            }
             case SvBinaryExpression.Op.ArithmeticShiftLeft:
                 throw new NotImplementedException("Arithmetic Shift Left");
             //----------------------------------------------------------------------------------------------------------
-            case SvBinaryExpression.Op.Less:
-                throw new NotImplementedException("Logical Shift Right");
-            case SvBinaryExpression.Op.Greater:
-                throw new NotImplementedException("Logical Shift Right");
-            case SvBinaryExpression.Op.LessEqual:
-                throw new NotImplementedException("Logical Shift Right");
-            case SvBinaryExpression.Op.GreaterEqual:
-                throw new NotImplementedException("Logical Shift Right");
-            case SvBinaryExpression.Op.Equal:
-                throw new NotImplementedException("Logical Shift Right");
-            case SvBinaryExpression.Op.NotEqual:
-                throw new NotImplementedException("Logical Shift Right");
+            case SvBinaryExpression.Op.Less: {
+                var (l, r) = Types.AssertBitVecTypeOrFail(left, right);
+                if (l.Expr.SortSize == r.Expr.SortSize) {
+                    return (
+                        Z3Expr.From(_z3Ctx.MkBVSLT(l, r)),
+                        varNames
+                    );
+                }
+
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                return (
+                    Z3Expr.From(_z3Ctx.MkBVSLT(sameSizeL, sameSizeR)),
+                    varNames
+                );
+            }
+            case SvBinaryExpression.Op.Greater: {
+                var (l, r) = Types.AssertBitVecTypeOrFail(left, right);
+                if (l.Expr.SortSize == r.Expr.SortSize) {
+                    return (
+                        Z3Expr.From(_z3Ctx.MkBVSGT(l, r)),
+                        varNames
+                    );
+                }
+
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                return (
+                    Z3Expr.From(_z3Ctx.MkBVSGT(sameSizeL, sameSizeR)),
+                    varNames
+                );
+            }
+            case SvBinaryExpression.Op.LessEqual: {
+                var (l, r) = Types.AssertBitVecTypeOrFail(left, right);
+                if (l.Expr.SortSize == r.Expr.SortSize) {
+                    return (
+                        Z3Expr.From(_z3Ctx.MkBVSLE(l, r)),
+                        varNames
+                    );
+                }
+
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                return (
+                    Z3Expr.From(_z3Ctx.MkBVSLE(sameSizeL, sameSizeR)),
+                    varNames
+                );
+            }
+            case SvBinaryExpression.Op.GreaterEqual: {
+                var (l, r) = Types.AssertBitVecTypeOrFail(left, right);
+                if (l.Expr.SortSize == r.Expr.SortSize) {
+                    return (
+                        Z3Expr.From(_z3Ctx.MkBVSGE(l, r)),
+                        varNames
+                    );
+                }
+
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                return (
+                    Z3Expr.From(_z3Ctx.MkBVSGE(sameSizeL, sameSizeR)),
+                    varNames
+                );
+            }
+            case SvBinaryExpression.Op.Equal: {
+                var (l, r) = Types.AssertBitVecTypeOrFail(left, right);
+                if (l.Expr.SortSize == r.Expr.SortSize) {
+                    return (
+                        Z3Expr.From(_z3Ctx.MkEq(l, r)),
+                        varNames
+                    );
+                }
+
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                return (
+                    Z3Expr.From(_z3Ctx.MkEq(sameSizeL, sameSizeR)),
+                    varNames
+                );
+            }
+            case SvBinaryExpression.Op.NotEqual: {
+                var (l, r) = Types.AssertBitVecTypeOrFail(left, right);
+                if (l.Expr.SortSize == r.Expr.SortSize) {
+                    return (
+                        Z3Expr.From(_z3Ctx.MkNot(_z3Ctx.MkEq(l, r))),
+                        varNames
+                    );
+                }
+
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                return (
+                    Z3Expr.From(_z3Ctx.MkNot(_z3Ctx.MkEq(sameSizeL, sameSizeR))),
+                    varNames
+                );
+            }
             //----------------------------------------------------------------------------------------------------------
             case SvBinaryExpression.Op.EqualXZ:
                 throw new UnsupportedOperation("Compiler doesn't currently support compiling constraints involving non-binary values (X and Z).");
             case SvBinaryExpression.Op.NotEqualXZ:
                 throw new UnsupportedOperation("Compiler doesn't currently support compiling constraints involving non-binary values (X and Z).");
             //----------------------------------------------------------------------------------------------------------
-            case SvBinaryExpression.Op.BitwiseAnd:
-                throw new NotImplementedException("Logical Shift Right");
-            case SvBinaryExpression.Op.BitwiseOr:
-                throw new NotImplementedException("Logical Shift Right");
-            case SvBinaryExpression.Op.BitwiseXor:
-                throw new NotImplementedException("Logical Shift Right");
-            case SvBinaryExpression.Op.BitwiseXnor:
-                throw new NotImplementedException("Logical Shift Right");
+            case SvBinaryExpression.Op.BitwiseAnd: {
+                var (l, r) = Types.AssertBitVecTypeOrFail(left, right);
+                if (l.Expr.SortSize == r.Expr.SortSize) {
+                    return (
+                        Z3Expr.From(_z3Ctx.MkBVAND(l, r)),
+                        varNames
+                    );
+                }
+
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                return (
+                    Z3Expr.From(_z3Ctx.MkBVAND(sameSizeL, sameSizeR)),
+                    varNames
+                );
+            } 
+            case SvBinaryExpression.Op.BitwiseOr: {
+                var (l, r) = Types.AssertBitVecTypeOrFail(left, right);
+                if (l.Expr.SortSize == r.Expr.SortSize) {
+                    return (
+                        Z3Expr.From(_z3Ctx.MkBVOR(l, r)),
+                        varNames
+                    );
+                }
+
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                return (
+                    Z3Expr.From(_z3Ctx.MkBVOR(sameSizeL, sameSizeR)),
+                    varNames
+                );
+            }
+            case SvBinaryExpression.Op.BitwiseXor: {
+                var (l, r) = Types.AssertBitVecTypeOrFail(left, right);
+                if (l.Expr.SortSize == r.Expr.SortSize) {
+                    return (
+                        Z3Expr.From(_z3Ctx.MkBVXOR(l, r)),
+                        varNames
+                    );
+                }
+
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                return (
+                    Z3Expr.From(_z3Ctx.MkBVXOR(sameSizeL, sameSizeR)),
+                    varNames
+                );
+            }
+            case SvBinaryExpression.Op.BitwiseXnor: {
+                var (l, r) = Types.AssertBitVecTypeOrFail(left, right);
+                if (l.Expr.SortSize == r.Expr.SortSize) {
+                    return (
+                        Z3Expr.From(_z3Ctx.MkBVXNOR(l, r)),
+                        varNames
+                    );
+                }
+
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                return (
+                    Z3Expr.From(_z3Ctx.MkBVXNOR(sameSizeL, sameSizeR)),
+                    varNames
+                );
+            }
             //----------------------------------------------------------------------------------------------------------
-            case SvBinaryExpression.Op.And:
-                throw new NotImplementedException("Logical Shift Right");
-            case SvBinaryExpression.Op.Or:
-                throw new NotImplementedException("Logical Shift Right");
+            case SvBinaryExpression.Op.And: {
+                var (l, r) = Types.AssertBoolTypeOrFail(left, right);
+           
+                return (
+                    Z3Expr.From(_z3Ctx.MkAnd(l, r)),
+                    varNames
+                );
+            }
+            case SvBinaryExpression.Op.Or: {
+                var (l, r) = Types.AssertBoolTypeOrFail(left, right);
+
+                return (
+                    Z3Expr.From(_z3Ctx.MkOr(l, r)),
+                    varNames
+                );
+            }
             default:
                 UnrecognizedAstPropertyValue.Throw(bin.Operator);
                 //unreachable
@@ -265,9 +422,78 @@ public class Sv2Z3Compiler {
 
     
     public (Z3Expr, HashSet<string>) Compile(SvUnaryExpression un) {
-        return (null, null);
+        switch (un.OP) {
+            case SvUnaryExpression.UnaryOP.Plus:
+                throw new NotImplementedException();
+            case SvUnaryExpression.UnaryOP.Minus:
+                throw new NotImplementedException();
+            case SvUnaryExpression.UnaryOP.Negation:
+                throw new NotImplementedException();
+            case SvUnaryExpression.UnaryOP.Complement:
+                throw new NotImplementedException();
+            case SvUnaryExpression.UnaryOP.BitwiseAnd:
+                throw new NotImplementedException();
+            case SvUnaryExpression.UnaryOP.BitwiseNand:
+                throw new NotImplementedException();
+            case SvUnaryExpression.UnaryOP.BitwiseOr:
+                throw new NotImplementedException();
+            case SvUnaryExpression.UnaryOP.BitwiseNor:
+                throw new NotImplementedException();
+            case SvUnaryExpression.UnaryOP.Xor:
+                throw new NotImplementedException();
+            case SvUnaryExpression.UnaryOP.Xnor:
+                throw new NotImplementedException();
+            default:
+                UnrecognizedAstPropertyValue.Throw(un.OP);
+                //unreachable
+                return (null, null);
+        }    
     }
     public (Z3Expr, HashSet<string>) Compile(SvPrimary prim) {
+        if (prim is SvLiteral lit) {
+            return Compile(lit);
+        }
+
+        if (prim is SvHierarchicalId hid) {
+            return Compile(hid);
+        }
+
+        UnrecognizedAstNode.Throw(prim);
+        //unreachable
         return (null, null);
+    }
+
+    public (Z3Expr, HashSet<string>) Compile(SvLiteral lit) {
+        if (lit is SvNumLiteral num) {
+            return Compile(num);
+        }
+
+        if (lit is SvStringLiteral str) {
+            throw new UnsupportedOperation("Compiler doesn't support compiling strings yet.");
+        }
+
+        UnrecognizedAstNode.Throw(lit);
+        //unreachable
+        return (null, null);
+    }
+
+    public (Z3Expr, HashSet<string>) Compile(SvHierarchicalId hid) {
+        if (hid.HierarchicalIds.Count == 1) {
+            return (
+                Z3Expr.From(_currProblem.LookupVar(hid.HierarchicalIds[0])),
+                new HashSet<string>() {hid.HierarchicalIds[0]}
+            );
+        }
+
+        UnrecognizedAstPropertyValue.Throw(hid.HierarchicalIds);
+        //unreachable
+        return (null, null);
+    }
+
+    public (Z3Expr, HashSet<string>) Compile(SvNumLiteral numLit) {
+        return (
+            Z3Expr.BitVec.FromSvNum(numLit.Number,_z3Ctx),
+            new HashSet<string>()
+        );
     }
 }

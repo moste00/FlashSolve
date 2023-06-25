@@ -545,7 +545,6 @@ public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
         catch (Exception e) {
             rand = null;
         }
-        // Console.WriteLine($"rand: {rand}");
         string? randc;
         try {
             randc = context.RANDC().GetText();
@@ -553,7 +552,6 @@ public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
         catch (Exception e) {
             randc = null;
         }
-        // Console.WriteLine($"randc: {randc}");
 
         if (rand != null) {
             bitData.Rand = SvBitData.Random.rand;
@@ -564,7 +562,6 @@ public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
         else {
             bitData.Rand = SvBitData.Random.notRand;
         }
-        // Console.WriteLine($"random: {bitData.Rand}");
         return bitData;
     }
 

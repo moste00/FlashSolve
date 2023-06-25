@@ -1,16 +1,16 @@
 ﻿namespace flashsolve.parser.ast; 
 
 public class SvNumLiteral : SvLiteral {
-    private string number;
+    private string _number;
 
     public SvNumLiteral() { }
 
     public string Number {
         get {
-            return number;
+            return _number;
         }
         set {
-            number = value;
+            _number = value;
         }
     }
 }

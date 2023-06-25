@@ -1,3 +1,6 @@
+using flashsolve.compiler;
+using Microsoft.Z3;
+
 namespace flashsolve.main;
 
 using flashsolve.util.cmdparse;

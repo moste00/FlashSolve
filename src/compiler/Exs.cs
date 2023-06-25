@@ -22,7 +22,7 @@ public class UnrecognizedAstPropertyValue : Exception {
     [DoesNotReturn]
     public static Object Throw(Object o) {
         var t = o.GetType();
-        throw new UnrecognizedAstNode($"Ast Node of type ${t.Name} can't have the value ${o}, it's an unrecognized value and there is no code to handle it.");
+        throw new UnrecognizedAstPropertyValue($"Ast Node of type ${t.Name} can't have the value ${o}, it's an unrecognized value and there is no code to handle it.");
     }
 }
 
@@ -36,4 +36,10 @@ public class TypeMismatch : Exception {
     public TypeMismatch() { }
     public TypeMismatch(string msg) : base(msg) { }
     public TypeMismatch(string msg, Exception inner) : base(msg, inner) { }
+}
+
+public class UnrecognizedNumberFormat : Exception {
+    public UnrecognizedNumberFormat() { }
+    public UnrecognizedNumberFormat(string msg) : base(msg) { }
+    public UnrecognizedNumberFormat(string msg, Exception inner) : base(msg, inner) { }
 }

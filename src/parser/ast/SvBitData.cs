@@ -31,7 +31,8 @@ public class SvBitData : SvAstNode {
         }
     }
     public string Name => cstnode.Name;
-
+    public uint Start => startIndex;
+    public uint End => endIndex;
     public Random Rand {
         get {
             return rand;
