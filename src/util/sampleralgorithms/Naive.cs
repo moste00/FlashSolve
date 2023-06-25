@@ -49,15 +49,17 @@ public class Naive : Base
             BoolExpr allVariablesHaveNewValues = null;
             foreach (var con in model.Consts) {
                 var constName = con.Key.Name.ToString();
+                if (constName.Contains("hash") || constName == "input")
+                {
+                    continue;
+                }
                 namesToValues[constName].Add(
-                    // fix printing hexa problem
-                    con.Value.ToString()
-                    //Int32.Parse(con.Value.ToString())
+                    con.Value
                 );
                 var expr = namesToExprs[constName];
                     
                 if (allVariablesHaveNewValues == null) {
-                    allVariablesHaveNewValues = ctx.MkAnd(ctx.MkEq(expr, con.Value));
+                    allVariablesHaveNewValues = ctx.MkAnd(ctx.MkEq(expr, con.Value))!;
                 }
                 else {
                     allVariablesHaveNewValues = ctx.MkAnd(allVariablesHaveNewValues, ctx.MkEq(expr, con.Value))!;

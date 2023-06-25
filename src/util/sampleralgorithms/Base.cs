@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Text;
 using Microsoft.Z3;
 using flashsolve.util;
+using System.Numerics;
 
 public class Base
 {
@@ -33,10 +34,11 @@ public class Base
         {
             namesToValues[key] = new List<object>();
         }
-        if(Timer)
-            namesToValues[OutputDurationKey] = new List<object>();
         if(hash)
             namesToValues[OutputHashKey] = new List<object>();   
+        
+        if(Timer)
+            namesToValues[OutputDurationKey] = new List<object>();
 
         return namesToValues;
     }
@@ -54,7 +56,10 @@ public class Base
 
                 if (i < values.Count)
                 {
-                    Console.Write(values[i] + " ");
+                    if(key == OutputDurationKey)
+                        Console.Write(values[i]+ " ");
+                    else
+                        Console.Write("0x" + BigInteger.Parse(values[i].ToString()).ToString("x")+ " ");
                 }
                 else
                 {
@@ -83,17 +88,6 @@ public class Base
         var thousand = ctx.MkBV(1000, bvType.Size);
         var twentyFive = ctx.MkBV(25, bvType.Size);
 
-        var x = ctx.MkBVSGT(ctx.MkBVSub(
-                ctx.MkBVMul(thousand, thousand),
-                ctx.MkBVMul(
-                    ctx.MkBVMul(
-                        ctx.MkBV(4, bvType.Size),
-                        thousand),
-                    zero)
-            ),zero);
-        
-        Console.WriteLine(x);
-        
         var constraints = new BoolExpr[] {
             ctx.MkBVSGT(a, zero),
             ctx.MkBVSGT(b, zero),
