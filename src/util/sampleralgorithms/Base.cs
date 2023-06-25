@@ -26,22 +26,22 @@ public class Base
         Paralization = configs.sampler_paralization;
     }
 
-    protected Dictionary<string, List<int>> create_output_dictionary(Dictionary<string, IntExpr> namesToExprs, bool hash)
+    protected Dictionary<string, List<object>> create_output_dictionary(Dictionary<string, BitVecExpr> namesToExprs, bool hash)
     {
-        var namesToValues = new Dictionary<string, List<int>>();
+        var namesToValues = new Dictionary<string, List<object>>();
         foreach (var key in namesToExprs.Keys)
         {
-            namesToValues[key] = new List<int>();
+            namesToValues[key] = new List<object>();
         }
         if(Timer)
-            namesToValues[OutputDurationKey] = new List<int>();
+            namesToValues[OutputDurationKey] = new List<object>();
         if(hash)
-            namesToValues[OutputHashKey] = new List<int>();   
+            namesToValues[OutputHashKey] = new List<object>();   
 
         return namesToValues;
     }
     
-    protected void print_output_dictionary(Dictionary<string, List<int>> namesToValues)
+    protected void print_output_dictionary(Dictionary<string, List<object>> namesToValues)
     {
         int maxLength = namesToValues.Values.Max(list => list.Count);
 
@@ -50,7 +50,7 @@ public class Base
             foreach (var kvp in namesToValues)
             {
                 string key = kvp.Key;
-                List<int> values = kvp.Value;
+                List<object> values = kvp.Value;
 
                 if (i < values.Count)
                 {
@@ -65,27 +65,53 @@ public class Base
         }
     }
 
-    protected (Context context, BoolExpr[] constraints, Dictionary<string, IntExpr> namesToExprs) get_constraints()
+    protected (Context context, BoolExpr[] constraints, Dictionary<string, BitVecExpr> namesToExprs) get_constraints()
     {
         // mocking till kamal finishes his class
         var ctx = new Context();
-        var a = ctx.MkIntConst("a")!;
-        var b = ctx.MkIntConst("b")!;
-        var c = ctx.MkIntConst("c")!;
-        var namesToExprs = new Dictionary<string, IntExpr>(){
+        var bvType = ctx.MkBitVecSort(32);
+
+        var a = (BitVecExpr)ctx.MkConst("a", bvType)!;
+        var b = (BitVecExpr)ctx.MkConst("b", bvType)!;
+        var c = (BitVecExpr)ctx.MkConst("c", bvType)!;
+        var namesToExprs = new Dictionary<string, BitVecExpr>(){
             { "a", a },
             { "b", b },
             { "c", c }
         };
+        var zero = ctx.MkBV(0, bvType.Size);
+        var thousand = ctx.MkBV(1000, bvType.Size);
+        var twentyFive = ctx.MkBV(25, bvType.Size);
 
-        var constraints = new[] {
-            a > 0,
-            b > 0,
-            c > 0,
-            a < 1000,
-            b < 25,
-            c < 1000,
-            (b * b - 4 * a * c) > 0
+        var x = ctx.MkBVSGT(ctx.MkBVSub(
+                ctx.MkBVMul(thousand, thousand),
+                ctx.MkBVMul(
+                    ctx.MkBVMul(
+                        ctx.MkBV(4, bvType.Size),
+                        thousand),
+                    zero)
+            ),zero);
+        
+        Console.WriteLine(x);
+        
+        var constraints = new BoolExpr[] {
+            ctx.MkBVSGT(a, zero),
+            ctx.MkBVSGT(b, zero),
+            ctx.MkBVSGT(c, zero),
+            ctx.MkBVSLT(a, thousand),
+            ctx.MkBVSLT(b, twentyFive),
+            ctx.MkBVSLT(c, thousand),
+            ctx.MkBVSGT(
+                ctx.MkBVSub(
+                    ctx.MkBVMul(b, b),
+                    ctx.MkBVMul(
+                        ctx.MkBVMul(
+                            ctx.MkBV(4, bvType.Size),
+                            a),
+                        c)
+                    ),
+                zero)
+              //  (b * b - 4 * a * c) > 0
         };
         
         return (ctx, constraints, namesToExprs);

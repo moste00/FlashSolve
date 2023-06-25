@@ -6,8 +6,8 @@ public class Naive : Base
 {
     protected Solver solver;
     protected Context ctx;
-    protected Dictionary<string, IntExpr> namesToExprs;
-    protected Dictionary<string, List<int>> namesToValues;
+    protected Dictionary<string, BitVecExpr>namesToExprs;
+    protected Dictionary<string, List<object>> namesToValues;
     public Naive(Config configs, uint no_outputs) : base(configs, no_outputs)
     {
         var (CTX, constraints, namestoexprs) = get_constraints();
@@ -18,18 +18,18 @@ public class Naive : Base
         namesToValues = create_output_dictionary(namesToExprs, false);
     }
 
-    protected Status check_with_timer(Solver solver, Stopwatch stopwatch)
+    protected Status check_with_timer(Stopwatch stopwatch)
     {
         stopwatch.Restart();
         var result = solver.Check();
         stopwatch.Stop();
-        namesToValues["duration_in_millis"].Add((int)stopwatch.Elapsed.TotalMilliseconds);
+        namesToValues["duration_in_millis"].Add(stopwatch.Elapsed.TotalMilliseconds);
 
         return result;
     }
     
     
-    protected void run_naive_algorithm(uint thresh = 1, uint current_numSols = 0)
+    protected void run_naive_algorithm(uint thresh = 1, uint currentNumSols = 0)
     {
         var stopwatch = new Stopwatch();
         Status result;
@@ -37,7 +37,7 @@ public class Naive : Base
         do
         {
             if (Timer)
-                result = check_with_timer(solver, stopwatch);
+                result = check_with_timer(stopwatch);
             else
                 result = solver.Check();
             
@@ -45,12 +45,14 @@ public class Naive : Base
                 break;
             
             var model = solver.Model!;
-           
+
             BoolExpr allVariablesHaveNewValues = null;
             foreach (var con in model.Consts) {
                 var constName = con.Key.Name.ToString();
                 namesToValues[constName].Add(
-                    Int32.Parse(con.Value.ToString())
+                    // fix printing hexa problem
+                    con.Value.ToString()
+                    //Int32.Parse(con.Value.ToString())
                 );
                 var expr = namesToExprs[constName];
                     
@@ -65,8 +67,8 @@ public class Naive : Base
                 
             solver.Add(allVariablesHaveNewValues);
 
-            current_numSols++;
-            if (current_numSols == NoOutputs || current_numSols == thresh) {
+            currentNumSols++;
+            if (currentNumSols == NoOutputs || currentNumSols == thresh) {
                 break;
             }
         } while (result == Status.SATISFIABLE);

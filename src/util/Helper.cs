@@ -3,7 +3,7 @@ using Microsoft.Z3;
 
 public static class Helper
 {
-    public static void shuffle_expr_list( ref List<IntExpr> list)
+    public static void shuffle_expr_list( ref List<BitVecExpr> list)
     {
         // Create a random number generator
         Random random = new Random();
