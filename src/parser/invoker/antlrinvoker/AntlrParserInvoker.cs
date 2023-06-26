@@ -4,10 +4,15 @@ using flashsolve.parser.ast;
 namespace flashsolve.parser.invoker.antlrinvoker;
 
 class AntlrInvoker : ParserInvoker {
-    private SvAstRoot _ast;
+    private List<SvAstRoot> _asts;
 
-    public SvAstRoot Ast => _ast;
+    public SvAstRoot this[int n] => _asts[n];
 
+    public SvAstRoot[] Ast => _asts.ToArray();
+
+    public AntlrInvoker() {
+        _asts = new List<SvAstRoot>();
+    }
     public void add_file(string path) {
         var input = new AntlrFileStream(path);
         var lexer = new SystemVerilogLexer(input);
@@ -17,7 +22,7 @@ class AntlrInvoker : ParserInvoker {
         };
         var parseTree = parser.svprogram();
         var ast = new CstVisitor().Visit(parseTree);
-        Console.WriteLine("done");
+        _asts.Add((SvAstRoot)ast);
     }
 
     public void add_string(string svcode) {

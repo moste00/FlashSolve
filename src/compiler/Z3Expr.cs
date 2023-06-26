@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Numerics;
 
 namespace flashsolve.compiler; 
@@ -102,9 +103,65 @@ public class Z3Expr {
             }
         }
 
-        private static BitVec FromSmallSvNumBased(string num, uint sizeBits, Context z3Ctx) {
-            throw new NotImplementedException();
-        }
+        private static BitVec FromSmallSvNumBased(string num, uint sizeBits, Context z3Ctx) { 
+            bool isSigned = num[0] == 's' || num[0] == 'S';
+            uint baseIndex = (uint)(isSigned? 
+                            1:
+                            0);
+            char basee = num[(int)baseIndex];
+            UInt64 bas = basee switch {
+                'h' => (UInt64)16,
+                'H' => (UInt64)16,
+                
+                'o' => (UInt64)8,
+                'O' => (UInt64)8,
+                
+                'b' => (UInt64)2,
+                'B' => (UInt64)2,
+                
+                _ => throw new UnrecognizedNumberFormat($"Base {basee} is an unrecognized number system.")
+            };
+            UInt64 pow = 1;
+            UInt64 number = 0;
+            foreach (var digit in num.Slice()
+                                     .From(baseIndex+1)
+                                     .ToEnd
+                                     .Reversed) {
+                int digitAsNum = digit switch {
+                    '0' => 0,
+                    '1' => 1,
+                    '2' => 2,
+                    '3' => 3,
+                    '4' => 4,
+                    '5' => 5,
+                    '6' => 6,
+                    '7' => 7,
+                    '8' => 8,
+                    '9' => 9,
+                    'a' => 10,
+                    'A' => 10,
+                    'b' => 11,
+                    'B' => 11,
+                    'c' => 12,
+                    'C' => 12,
+                    'd' => 13,
+                    'D' => 13,
+                    'e' => 14,
+                    'E' => 14,
+                    'f' => 15,
+                    'F' => 15,
+                    
+                    _ => throw new UnrecognizedNumberFormat($"Digit {digit} is unrecognized.")
+                };
+                
+                number += pow * (uint)digitAsNum;
+                pow *= bas;
+            }
+
+            return Z3Expr.From(
+                    z3Ctx.MkBV(number,sizeBits)
+            );
+;        }
     }
 
     public static Bool From(BoolExpr e) => new(e);

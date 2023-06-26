@@ -7,9 +7,11 @@ using parser.ast;
 public class Sv2Z3Compiler {
     private Context _z3Ctx;
     private RandProblem _currProblem;
+    private string _currClsName;
     public Sv2Z3Compiler() {
         _z3Ctx = new Context();
         _currProblem = null;
+        _currClsName = null;
     }
     public RandProblem Compile(SvConstraintProgram prog) {
         var result = new RandProblem();
@@ -26,11 +28,13 @@ public class Sv2Z3Compiler {
 
     public RandProblem Compile(SvClass cls) {
         var result = new RandProblem();
+        string oldClsName = _currClsName;
         RandProblem old = _currProblem;
+        _currClsName = cls.Name;
         _currProblem = result;
         
         foreach (var dataDef in cls.Members) {
-            string varName = $"${cls.Name}#${dataDef.Name}";
+            string varName = $"{cls.Name}#{dataDef.Name}";
             result.AddVar(varName,
                         _z3Ctx.MkBVConst(varName,dataDef.End - dataDef.Start + 1));
         }   
@@ -40,10 +44,11 @@ public class Sv2Z3Compiler {
             result.AddConstraint(constraint);
             
             foreach (var varName in varNames) {
-                result.AssociateConstraintWithVar(constraint,varName);
+                result.AssociateConstraintWithVar(constraint,$"{cls.Name}#{varName}");
             }
         }
 
+        _currClsName = oldClsName;
         _currProblem = old;
         return result;
     }
@@ -480,7 +485,7 @@ public class Sv2Z3Compiler {
     public (Z3Expr, HashSet<string>) Compile(SvHierarchicalId hid) {
         if (hid.HierarchicalIds.Count == 1) {
             return (
-                Z3Expr.From(_currProblem.LookupVar(hid.HierarchicalIds[0])),
+                Z3Expr.From(_currProblem.LookupVar(_currClsName +"#"+ hid.HierarchicalIds[0])),
                 new HashSet<string>() {hid.HierarchicalIds[0]}
             );
         }

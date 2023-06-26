@@ -6,10 +6,11 @@ namespace flashsolve.main;
 using flashsolve.util.cmdparse;
 using static Parse;
 using static Sample;
-    
+using static Compile;
 public static class FlashSolve {
     enum SubprogramType {
         FlashParser,
+        FlashCompiler,
         FlashSampler
     }
     
@@ -20,7 +21,8 @@ public static class FlashSolve {
         var subprogramOption = new EnumArg<SubprogramType>() { Name = "do" };
         subprogramOption
             .Map("parse".To(SubprogramType.FlashParser),
-                 "sample".To(SubprogramType.FlashSampler))    
+                 "sample".To(SubprogramType.FlashSampler),
+                 "compile".To(SubprogramType.FlashCompiler))    
             .OnParse((sub) => {
                 switch (sub) {
                     case SubprogramType.FlashParser:
@@ -28,6 +30,9 @@ public static class FlashSolve {
                         break;
                     case SubprogramType.FlashSampler:
                         SampleMain(subprogramArgs);
+                        break;
+                    case SubprogramType.FlashCompiler:
+                        CompileMain(subprogramArgs);
                         break;
                 }
             })
@@ -37,6 +42,6 @@ public static class FlashSolve {
         
         cmdParser.Add(subprogramOption);
         
-        var res = cmdParser.Run(args);
+        cmdParser.Run(args);
     }
 }
