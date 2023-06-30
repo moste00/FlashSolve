@@ -57,7 +57,7 @@ public class Base
                 if (i < values.Count)
                 {
                     if(key == OutputDurationKey)
-                        Console.Write(values[i]+ " ");
+                        Console.Write("   | " + values[i]+ " ms");
                     else
                         Console.Write("0x" + BigInteger.Parse(values[i].ToString()).ToString("x")+ " ");
                 }
