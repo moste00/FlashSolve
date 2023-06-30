@@ -33,9 +33,9 @@ public class SampleV1
     {
         // should run the candidate algorithm with respect to the output configs
         // then writes the output results
-        var sampler = new Hash(_configs, _numOfOutputs);
+        var sampler = new Hybird(_configs, 1000);
         Console.WriteLine("************************************************************************************");
-        sampler.run_hash();
+        sampler.run_hybird_alternate(2);
         Console.WriteLine("************************************************************************************");
     }
 

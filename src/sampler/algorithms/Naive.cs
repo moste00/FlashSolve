@@ -8,11 +8,11 @@ public class Naive : Base
     protected readonly Context Ctx;
     protected readonly Dictionary<string, BitVecExpr>NamesToExprs;
     protected Dictionary<string, List<object>> NamesToValues;
-    public Naive(Config configs, uint no_outputs) : base(configs, no_outputs)
+    public Naive(Config configs, uint noOutputs) : base(configs, noOutputs)
     {
-        var (CTX, constraints, namestoexprs) = get_constraints();
+        var (ctx, constraints, namestoexprs) = get_constraints();
         NamesToExprs = namestoexprs;
-        Ctx = CTX;
+        Ctx = ctx;
         Solver = Ctx.MkSolver();
         Solver.Add(constraints);
         NamesToValues = create_output_dictionary(NamesToExprs, false);
@@ -29,7 +29,7 @@ public class Naive : Base
     }
     
     
-    protected void run_naive_algorithm(uint thresh = 1, uint currentNumSols = 0)
+    protected uint run_naive_algorithm(uint thresh = 1, uint currentNumSols = 0)
     {
         var stopwatch = new Stopwatch();
         Status result;
@@ -74,6 +74,8 @@ public class Naive : Base
                 break;
             }
         } while (result == Status.SATISFIABLE);
+        
+        return currentNumSols;
     }
 
     public void run_naive()

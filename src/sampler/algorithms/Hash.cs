@@ -116,7 +116,7 @@ public class Hash: Naive
         return input;
     }
     
-    protected void run_hash_algorithm(uint thresh = 1, uint currentNumSols = 0)
+    protected uint run_hash_algorithm(uint thresh = 1, uint currentNumSols = 0)
     {
         var stopwatch = new Stopwatch();
         Status result;
@@ -160,6 +160,8 @@ public class Hash: Naive
                 break;
             }
         } while (result == Status.SATISFIABLE);
+
+        return currentNumSols;
     }
     
     public void run_hash()
