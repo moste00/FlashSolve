@@ -12,15 +12,15 @@ public class SampleV1
     private const string ConfigFilePath = "src/main/config.json";
     
     // members
-    private Config Configs;
-    private uint NumOfOutputs;
+    private Config _configs;
+    private uint _numOfOutputs;
     // note: missing: cadidate algorithm, constraints variable
     
     // Constructor
     public SampleV1(uint numOfOutputs)
     {
-        Configs = new Config(ConfigFilePath);
-        NumOfOutputs = numOfOutputs;
+        _configs = new Config(ConfigFilePath);
+        _numOfOutputs = numOfOutputs;
     }
 
     public void run_test()
@@ -33,9 +33,9 @@ public class SampleV1
     {
         // should run the candidate algorithm with respect to the output configs
         // then writes the output results
-        var sampler = new Hash(Configs, NumOfOutputs);
+        var sampler = new Hash(_configs, _numOfOutputs);
         Console.WriteLine("************************************************************************************");
-        // sampler.run_naive();
+        sampler.run_hash();
         Console.WriteLine("************************************************************************************");
     }
 

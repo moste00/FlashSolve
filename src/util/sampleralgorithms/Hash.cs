@@ -7,18 +7,18 @@ public class Hash: Naive
     //constants
     private const uint InputSize = 32;
     
-    protected uint hashSize;
-    protected uint bitsCounts;
-    private BitVecExpr input;
-    private BitVecExpr hash;
+    private readonly uint _hashSize;
+    private readonly uint _bitsCounts;
+    private readonly BitVecExpr _input;
+    private readonly BitVecExpr _hash;
 
-    public Hash(Config configs, uint no_outputs) : base(configs, no_outputs)
+    public Hash(Config configs, uint noOutputs) : base(configs, noOutputs)
     {
-        namesToValues = create_output_dictionary(namesToExprs, true);
-        hashSize = configs.hashConstants_hashSize;
-        bitsCounts = configs.hashConstants_bitsCounts;
-        input = generate_input_bits();
-        hash = generate_hash_bits();
+        NamesToValues = create_output_dictionary(NamesToExprs, true);
+        _hashSize = configs.HashConstantsHashSize;
+        _bitsCounts = configs.HashConstantsBitsCounts;
+        _input = generate_input_bits();
+        _hash = generate_hash_bits();
     }
 
     private List<List<uint>> get_memoized_hash_bits_idx()
@@ -44,38 +44,38 @@ public class Hash: Naive
     }
     private BoolExpr extract_hash_bits(BitVecExpr hash)
     {
-        if (bitsCounts != 8)
-            throw new Exception("There is no implementation for other than 8 bitcounts yet.");
-        var hashbits_idx = get_memoized_hash_bits_idx();
+        if (_bitsCounts != 8)
+            throw new Exception("There is no implementation for other than 8 bitCounts yet.");
+        var hashBitsIdx = get_memoized_hash_bits_idx();
 
         BoolExpr allHashBitsExprs = null;
-        var bvbitHashType = ctx.MkBitVecSort(1);
+        var bvBitHashType = Ctx.MkBitVecSort(1);
 
         BitVecExpr totalHashVecExpr = null;
 
         // create all hash bits expers
-        for (int idx = 0; idx < hashSize; idx++)
+        for (int idx = 0; idx < _hashSize; idx++)
         {
             // gen new hashBits idxes
-            List<uint> hashBits = hashbits_idx[idx];
+            List<uint> hashBits = hashBitsIdx[idx];
             // create a constant for the new hash
-            var hash_i = (BitVecExpr)ctx.MkConst("hash" + idx, bvbitHashType);
+            var hashIdx = (BitVecExpr)Ctx.MkConst("hash" + idx, bvBitHashType);
             // xor first 2-bits
-            BitVecExpr hashVecExpr = ctx.MkBVXOR(ctx.MkExtract(hashBits[0], hashBits[0], input),
-                ctx.MkExtract(hashBits[1], hashBits[1], input));
+            BitVecExpr hashVecExpr = Ctx.MkBVXOR(Ctx.MkExtract(hashBits[0], hashBits[0], _input),
+                Ctx.MkExtract(hashBits[1], hashBits[1], _input));
             // xor the rest of the bits
-            for (int i = 2; i < bitsCounts; i++)
+            for (int i = 2; i < _bitsCounts; i++)
             {
-                hashVecExpr = ctx.MkBVXOR(hashVecExpr, ctx.MkExtract(hashBits[i], hashBits[i], input));
+                hashVecExpr = Ctx.MkBVXOR(hashVecExpr, Ctx.MkExtract(hashBits[i], hashBits[i], _input));
             }
-            //concat the hash_i to the total hash constant
+            //concat the hashIdx to the total hash constant
             if (totalHashVecExpr == null)
-                totalHashVecExpr = hash_i;
+                totalHashVecExpr = hashIdx;
             else
-                totalHashVecExpr = ctx.MkConcat(totalHashVecExpr, hash_i);
+                totalHashVecExpr = Ctx.MkConcat(totalHashVecExpr, hashIdx);
 
-            // create the hash bool exper
-            BoolExpr hashBoolExpr = ctx.MkEq(hash_i, hashVecExpr);
+            // create the hash bool expr
+            BoolExpr hashBoolExpr = Ctx.MkEq(hashIdx, hashVecExpr);
             // add it to the all hash bits expr
             if (allHashBitsExprs == null)
             {
@@ -83,37 +83,88 @@ public class Hash: Naive
             }
             else
             {
-                allHashBitsExprs = ctx.MkAnd(allHashBitsExprs, hashBoolExpr)!;
+                allHashBitsExprs = Ctx.MkAnd(allHashBitsExprs, hashBoolExpr)!;
             }
         }
         // make the total hash BoolExpr
-        BoolExpr totalHashBoolExpr = ctx.MkEq(hash, totalHashVecExpr);
-        allHashBitsExprs = ctx.MkAnd(allHashBitsExprs, totalHashBoolExpr);
-
-        // BoolExpr [] mergedExpr = {totalHashBoolExpr, allHashBitsExprs} ;
+        BoolExpr totalHashBoolExpr = Ctx.MkEq(hash, totalHashVecExpr);
+        allHashBitsExprs = Ctx.MkAnd(allHashBitsExprs, totalHashBoolExpr);
+        
         return allHashBitsExprs;
     }
     
     private BitVecExpr generate_hash_bits()
     {
-        var bvHashType = ctx.MkBitVecSort(hashSize);
-        var hash = (BitVecExpr)ctx.MkConst("hash", bvHashType);
+        var bvHashType = Ctx.MkBitVecSort(_hashSize);
+        var hash = (BitVecExpr)Ctx.MkConst("hash", bvHashType);
         var hashConstraint = new[] {
             extract_hash_bits(hash)
         };
-        solver.Add(hashConstraint);
+        Solver.Add(hashConstraint);
         return hash;
     }
     private BitVecExpr generate_input_bits()
     {
-        var bvInputType = ctx.MkBitVecSort(InputSize);
-        var input = (BitVecExpr)ctx.MkConst("input", bvInputType);
-        var exprs = namesToExprs.Values.ToList();
+        var bvInputType = Ctx.MkBitVecSort(InputSize);
+        var input = (BitVecExpr)Ctx.MkConst("input", bvInputType);
+        var exprs = NamesToExprs.Values.ToList();
         Helper.shuffle_expr_list(ref exprs);
         
         
-        var inputConstraint = Helper.extract_input_constraint(input, exprs, ctx);
-        solver.Add(inputConstraint);
+        var inputConstraint = Helper.extract_input_constraint(input, exprs, Ctx);
+        Solver.Add(inputConstraint);
         return input;
+    }
+    
+    protected void run_hash_algorithm(uint thresh = 1, uint currentNumSols = 0)
+    {
+        var stopwatch = new Stopwatch();
+        Status result;
+
+        do
+        {
+            if (Timer)
+                result = check_with_timer(stopwatch);
+            else
+                result = Solver.Check();
+            
+            if (result != Status.SATISFIABLE)
+                break;
+            
+            var model = Solver.Model!;
+
+            BoolExpr allVariablesHaveNewValues = null;
+            foreach (var con in model.Consts) {
+                var constName = con.Key.Name.ToString();
+                if (constName == "hash")
+                {
+                    NamesToValues[constName].Add(
+                        con.Value
+                    );
+
+                    allVariablesHaveNewValues = Ctx.MkAnd(Ctx.MkEq(_hash, con.Value));
+                }
+                else if (!constName.Contains("hash") && constName != "input")
+                {
+                    NamesToValues[constName].Add(
+                        con.Value
+                    );
+                }
+            }
+            allVariablesHaveNewValues = Ctx.MkNot(allVariablesHaveNewValues)!;
+                
+            Solver.Add(allVariablesHaveNewValues);
+
+            currentNumSols++;
+            if (currentNumSols == NoOutputs || currentNumSols == thresh) {
+                break;
+            }
+        } while (result == Status.SATISFIABLE);
+    }
+    
+    public void run_hash()
+    {
+        run_hash_algorithm(NoOutputs);
+        print_output_dictionary(NamesToValues);
     }
 }

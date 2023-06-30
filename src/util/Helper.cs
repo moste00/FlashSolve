@@ -15,8 +15,7 @@ public static class Helper
             n--;
             int k = random.Next(n + 1);
             var value = list[k];
-            list[k] = list[n];
-            list[n] = value;
+            (list[k], list[n]) = (list[n], value);
         }
     }
 

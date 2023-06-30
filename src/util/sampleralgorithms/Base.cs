@@ -12,19 +12,19 @@ public class Base
     private const string OutputDurationKey = "duration_in_millis";
 
     // members
-    protected Config Configs;
-    protected uint NoOutputs;
-    protected bool Timer;
+    private Config _configs;
+    protected readonly uint NoOutputs;
+    protected readonly bool Timer;
     protected bool Paralization;
 
     // Constructor
     // SHOULD TAKE THE CONSTRAINS STRUCT
-    public Base(Config configs, uint no_outputs)
+    public Base(Config configs, uint noOutputs)
     {
-        Configs = configs;
-        NoOutputs = no_outputs;
-        Timer = configs.sampler_timer;
-        Paralization = configs.sampler_paralization;
+        _configs = configs;
+        NoOutputs = noOutputs;
+        Timer = configs.SamplerTimer;
+        Paralization = configs.SamplerParalization;
     }
 
     protected Dictionary<string, List<object>> create_output_dictionary(Dictionary<string, BitVecExpr> namesToExprs, bool hash)
@@ -51,15 +51,17 @@ public class Base
         {
             foreach (var kvp in namesToValues)
             {
-                string key = kvp.Key;
-                List<object> values = kvp.Value;
+                var key = kvp.Key;
+                var values = kvp.Value;
 
                 if (i < values.Count)
                 {
                     if(key == OutputDurationKey)
                         Console.Write(values[i]+ " ");
                     else
-                        Console.Write("0x" + BigInteger.Parse(values[i].ToString()).ToString("x")+ " ");
+                        // don not push this
+                        //Console.Write("0x" + BigInteger.Parse(values[i].ToString()).ToString("x")+ " ");
+                        Console.Write(values[i]+ " ");
                 }
                 else
                 {

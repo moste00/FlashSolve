@@ -4,26 +4,26 @@ using Microsoft.Z3;
 
 public class Naive : Base
 {
-    protected Solver solver;
-    protected Context ctx;
-    protected Dictionary<string, BitVecExpr>namesToExprs;
-    protected Dictionary<string, List<object>> namesToValues;
+    protected readonly Solver Solver;
+    protected readonly Context Ctx;
+    protected readonly Dictionary<string, BitVecExpr>NamesToExprs;
+    protected Dictionary<string, List<object>> NamesToValues;
     public Naive(Config configs, uint no_outputs) : base(configs, no_outputs)
     {
         var (CTX, constraints, namestoexprs) = get_constraints();
-        namesToExprs = namestoexprs;
-        ctx = CTX;
-        solver = ctx.MkSolver();
-        solver.Add(constraints);
-        namesToValues = create_output_dictionary(namesToExprs, false);
+        NamesToExprs = namestoexprs;
+        Ctx = CTX;
+        Solver = Ctx.MkSolver();
+        Solver.Add(constraints);
+        NamesToValues = create_output_dictionary(NamesToExprs, false);
     }
 
     protected Status check_with_timer(Stopwatch stopwatch)
     {
         stopwatch.Restart();
-        var result = solver.Check();
+        var result = Solver.Check();
         stopwatch.Stop();
-        namesToValues["duration_in_millis"].Add(stopwatch.Elapsed.TotalMilliseconds);
+        NamesToValues["duration_in_millis"].Add(stopwatch.Elapsed.TotalMilliseconds);
 
         return result;
     }
@@ -39,12 +39,12 @@ public class Naive : Base
             if (Timer)
                 result = check_with_timer(stopwatch);
             else
-                result = solver.Check();
+                result = Solver.Check();
             
             if (result != Status.SATISFIABLE)
                 break;
             
-            var model = solver.Model!;
+            var model = Solver.Model!;
 
             BoolExpr allVariablesHaveNewValues = null;
             foreach (var con in model.Consts) {
@@ -53,21 +53,21 @@ public class Naive : Base
                 {
                     continue;
                 }
-                namesToValues[constName].Add(
+                NamesToValues[constName].Add(
                     con.Value
                 );
-                var expr = namesToExprs[constName];
+                var expr = NamesToExprs[constName];
                     
                 if (allVariablesHaveNewValues == null) {
-                    allVariablesHaveNewValues = ctx.MkAnd(ctx.MkEq(expr, con.Value))!;
+                    allVariablesHaveNewValues = Ctx.MkAnd(Ctx.MkEq(expr, con.Value))!;
                 }
                 else {
-                    allVariablesHaveNewValues = ctx.MkAnd(allVariablesHaveNewValues, ctx.MkEq(expr, con.Value))!;
+                    allVariablesHaveNewValues = Ctx.MkAnd(allVariablesHaveNewValues, Ctx.MkEq(expr, con.Value))!;
                 }
             }
-            allVariablesHaveNewValues = ctx.MkNot(allVariablesHaveNewValues)!;
+            allVariablesHaveNewValues = Ctx.MkNot(allVariablesHaveNewValues)!;
                 
-            solver.Add(allVariablesHaveNewValues);
+            Solver.Add(allVariablesHaveNewValues);
 
             currentNumSols++;
             if (currentNumSols == NoOutputs || currentNumSols == thresh) {
@@ -79,7 +79,7 @@ public class Naive : Base
     public void run_naive()
     {
         run_naive_algorithm(NoOutputs);
-        print_output_dictionary(namesToValues);
+        print_output_dictionary(NamesToValues);
     }
 
 }
