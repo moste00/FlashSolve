@@ -1,4 +1,4 @@
-namespace flashsolve.util;
+namespace flashsolve.sampler;
 using Microsoft.Z3;
 
 public static class Helper

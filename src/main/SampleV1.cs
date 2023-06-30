@@ -3,8 +3,8 @@ namespace flashsolve.main;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.Z3;
-using flashsolve.util;
-using flashsolve.util.sampleralgorithms;
+using flashsolve.sampler.algorithms;
+using flashsolve.sampler;
 
 public class SampleV1
 {

@@ -1,4 +1,4 @@
-namespace flashsolve.util; 
+namespace flashsolve.sampler; 
 using System.Text.Json;
 
 public class Config

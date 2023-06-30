@@ -1,4 +1,4 @@
-namespace flashsolve.util.sampleralgorithms;
+namespace flashsolve.sampler.algorithms;
 using System.Diagnostics;
 using Microsoft.Z3;
 

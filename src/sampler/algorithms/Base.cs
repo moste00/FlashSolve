@@ -1,8 +1,8 @@
-namespace flashsolve.util.sampleralgorithms;
+namespace flashsolve.sampler.algorithms;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.Z3;
-using flashsolve.util;
+using flashsolve.sampler;
 using System.Numerics;
 
 public class Base
@@ -59,9 +59,7 @@ public class Base
                     if(key == OutputDurationKey)
                         Console.Write(values[i]+ " ");
                     else
-                        // don not push this
-                        //Console.Write("0x" + BigInteger.Parse(values[i].ToString()).ToString("x")+ " ");
-                        Console.Write(values[i]+ " ");
+                        Console.Write("0x" + BigInteger.Parse(values[i].ToString()).ToString("x")+ " ");
                 }
                 else
                 {
