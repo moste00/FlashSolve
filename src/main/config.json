@@ -1,0 +1,22 @@
+{
+  "testing": {
+    "sampleSize": 50,
+    "timeLimitSecs": 60,
+    "algorithms": {
+      "naive": 1,
+      "maxsmt": 0,
+      "hash": 0
+    }
+  },
+  "output": {
+    "SampleSize": 1000
+  },
+  "sampler": {
+    "timer": 1,
+    "paralization": 0,
+    "hashConstants": {
+      "hashSize": 12,
+      "bitsCounts": 8
+    }
+  }
+}
