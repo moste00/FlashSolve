@@ -1,11 +1,10 @@
 using flashsolve.compiler;
 
 namespace flashsolve.sampler.algorithms;
-using System.Diagnostics;
-using System.Text;
 using Microsoft.Z3;
 using flashsolve.sampler;
-using System.Numerics;
+using System.Collections.Concurrent;
+
 
 public class Base
 {
@@ -14,21 +13,20 @@ public class Base
     private const string OutputDurationKey = "duration_in_millis";
 
     // members
-    private Config _configs;
+    protected Config Configs;
+    protected readonly uint TestingNoOutputs;
     protected readonly uint NoOutputs;
     protected readonly bool Timer;
-    protected bool Paralization;
-
     protected RandProblem _problem;
     // Constructor
     // SHOULD TAKE THE CONSTRAINS STRUCT
     public Base(Config configs, uint noOutputs, RandProblem problem)
     {
-        _configs = configs;
+        Configs = configs;
         NoOutputs = noOutputs;
         Timer = configs.SamplerTimer;
-        Paralization = configs.SamplerParalization;
         _problem = problem;
+        TestingNoOutputs = Math.Min(Configs.TestingSampleSize, NoOutputs);
     }
 
     protected Dictionary<string, List<object>> create_output_dictionary(Dictionary<string, BitVecExpr> namesToExprs, bool hash)
@@ -84,4 +82,8 @@ public class Base
         return (ctx, constraints, namesToExprs);
     }
 
+    public virtual void test_algorithm(ConcurrentDictionary<string, Dictionary<string, List<object>>> results)
+    {
+        Console.WriteLine("Warning: empty.....u called the base test function");
+    }
 }

@@ -1,8 +1,3 @@
-using flashsolve.compiler;
-using flashsolve.parser.ast;
-using flashsolve.parser.invoker.antlrinvoker;
-using flashsolve.util.datastructs;
-
 namespace flashsolve.main;
 
 using System.Diagnostics;
@@ -17,7 +12,7 @@ public class Sample
     private const string ConfigFilePath = "src/main/config.json";
     
     // members
-    private Config _configs;
+    private readonly Config _configs;
     private uint _numOfOutputs;
     // note: missing: cadidate algorithm, constraints variable
     
@@ -32,29 +27,18 @@ public class Sample
     {
         // runs the algorithms in the config
         // then choose the best one
+
     }
 
-    public void run() {
+    public void run()
+    {
         // should run the candidate algorithm with respect to the output configs
         // then writes the output results
-        var inv = new AntlrInvoker(); 
-        inv.add_file("F:/7.GP/FlashSolve/Tests/uniqueness1.txt");
-        var compiler = new Sv2Z3Compiler();
-        var problem = compiler.Compile((SvConstraintProgram)inv.Ast[0]);
-
-        var sampler = 
-            new Hash(_configs, _numOfOutputs, problem); // new SubRand(_configs, _numOfOutputs, problem, new Random())
-        sampler.run_hash();
-        Console.WriteLine("Sample Done Successfully");
-        
-    // var randomizers = new Dictionary<string, SubRandUtils.RangeAwareRandomizer>();
-    // foreach (var entry in problem.NonOverconstrainedVars()) {
-    //     randomizers[entry.Key] = new SubRandUtils.BlindRandomizer(entry.Value.SortSize,problem.Context);
-    // }
-    // sampler.Run(
-    //     new SubRandUtils.EpsilonGreedy(),
-    //     randomizers
-    // );
-    
+        var sampler = new Hybrid(_configs, _numOfOutputs,2);
+        Console.WriteLine("************************************************************************************");
+        sampler.run_hybrid_alternate();
+        Console.WriteLine("************************************************************************************");
     }
+
+
 }
