@@ -5,24 +5,27 @@ namespace flashsolve.compiler;
 using parser.ast;
 
 public class Sv2Z3Compiler {
-    private Context _z3Ctx;
-    private RandProblem _currProblem;
-    private string _currClsName;
+    private Context? _z3Ctx;
+    private RandProblem? _currProblem;
+    private string? _currClsName;
     public Sv2Z3Compiler() {
-        _z3Ctx = new Context();
+        _z3Ctx = null;
         _currProblem = null;
         _currClsName = null;
     }
     public RandProblem Compile(SvConstraintProgram prog) {
         var result = new RandProblem();
         _currProblem = result;
+        _z3Ctx = new Context();
         
         foreach (var cls in prog) {
             var problem = Compile(cls);
             result.Merge(problem);
         }
-
+        result.Context = _z3Ctx;
+        
         _currProblem = null;
+        _z3Ctx = null;
         return result;
     }
 

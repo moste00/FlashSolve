@@ -1,3 +1,5 @@
+using flashsolve.compiler;
+
 namespace flashsolve.sampler.algorithms;
 using System.Diagnostics;
 using Microsoft.Z3;
@@ -12,7 +14,7 @@ public class Hash: Naive
     private readonly BitVecExpr _input;
     private readonly BitVecExpr _hash;
 
-    public Hash(Config configs, uint noOutputs) : base(configs, noOutputs)
+    public Hash(Config configs, uint noOutputs, RandProblem problem) : base(configs, noOutputs, problem)
     {
         NamesToValues = create_output_dictionary(NamesToExprs, true);
         _hashSize = configs.HashConstantsHashSize;

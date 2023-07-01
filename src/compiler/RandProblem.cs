@@ -13,11 +13,24 @@ public class RandProblem {
     //also serves as a quick-lookup set to detect duplicate constraints
     private Dictionary<uint, int> _idsToIndices;
 
+    private Context _generatingCtx;
+
     public RandProblem() {
         _constraints = new List<BoolExpr>();
         _vars = new Dictionary<string, (HashSet<uint>,BitVecExpr)>();
         _idsToIndices = new Dictionary<uint, int>();
     }
+
+    public Context Context {
+        get => _generatingCtx;
+        set => _generatingCtx = value;
+    }
+    public BoolExpr[] Constraints => _constraints.ToArray();
+
+    public Dictionary<string, BitVecExpr> Vars => _vars.ToDictionary(
+        (entry) => entry.Key,
+        (entry) => entry.Value.Item2
+    );
     public void Merge(RandProblem other) {
         foreach (var constraint in other._constraints) {
             AddConstraint(constraint);

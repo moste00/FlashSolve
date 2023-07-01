@@ -1,3 +1,5 @@
+using flashsolve.compiler;
+
 namespace flashsolve.sampler.algorithms;
 using System.Diagnostics;
 using System.Text;
@@ -17,14 +19,16 @@ public class Base
     protected readonly bool Timer;
     protected bool Paralization;
 
+    protected RandProblem _problem;
     // Constructor
     // SHOULD TAKE THE CONSTRAINS STRUCT
-    public Base(Config configs, uint noOutputs)
+    public Base(Config configs, uint noOutputs, RandProblem problem)
     {
         _configs = configs;
         NoOutputs = noOutputs;
         Timer = configs.SamplerTimer;
         Paralization = configs.SamplerParalization;
+        _problem = problem;
     }
 
     protected Dictionary<string, List<object>> create_output_dictionary(Dictionary<string, BitVecExpr> namesToExprs, bool hash)
@@ -73,40 +77,10 @@ public class Base
     protected (Context context, BoolExpr[] constraints, Dictionary<string, BitVecExpr> namesToExprs) get_constraints()
     {
         // mocking till kamal finishes his class
-        var ctx = new Context();
-        var bvType = ctx.MkBitVecSort(32);
+        var ctx = _problem.Context;
 
-        var a = (BitVecExpr)ctx.MkConst("a", bvType)!;
-        var b = (BitVecExpr)ctx.MkConst("b", bvType)!;
-        var c = (BitVecExpr)ctx.MkConst("c", bvType)!;
-        var namesToExprs = new Dictionary<string, BitVecExpr>(){
-            { "a", a },
-            { "b", b },
-            { "c", c }
-        };
-        var zero = ctx.MkBV(0, bvType.Size);
-        var thousand = ctx.MkBV(1000, bvType.Size);
-        var twentyFive = ctx.MkBV(25, bvType.Size);
-
-        var constraints = new BoolExpr[] {
-            ctx.MkBVSGT(a, zero),
-            ctx.MkBVSGT(b, zero),
-            ctx.MkBVSGT(c, zero),
-            ctx.MkBVSLT(a, thousand),
-            ctx.MkBVSLT(b, twentyFive),
-            ctx.MkBVSLT(c, thousand),
-            ctx.MkBVSGT(
-                ctx.MkBVSub(
-                    ctx.MkBVMul(b, b),
-                    ctx.MkBVMul(
-                        ctx.MkBVMul(
-                            ctx.MkBV(4, bvType.Size),
-                            a),
-                        c)
-                    ),
-                zero)
-              //  (b * b - 4 * a * c) > 0
-        };
+        var constraints = _problem.Constraints;
+        var namesToExprs = _problem.Vars;
         
         return (ctx, constraints, namesToExprs);
     }

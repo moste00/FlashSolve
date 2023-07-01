@@ -29,7 +29,9 @@ public static class FlashSolve {
                         ParseMain(subprogramArgs);
                         break;
                     case SubprogramType.FlashSampler:
-                        SampleMain(subprogramArgs);
+                        var sv1 = new SampleV1(69);
+                        sv1.run();
+                        //SampleMain(subprogramArgs);
                         break;
                     case SubprogramType.FlashCompiler:
                         CompileMain(subprogramArgs);

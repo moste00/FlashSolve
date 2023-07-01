@@ -1,10 +1,12 @@
+using flashsolve.compiler;
+
 namespace flashsolve.sampler.algorithms;
 using System.Diagnostics;
 using Microsoft.Z3;
 
 public class Hybird : Hash
 {
-    public Hybird(Config configs, uint noOutputs) : base(configs, noOutputs)
+    public Hybird(Config configs, uint noOutputs, RandProblem problem) : base(configs, noOutputs, problem)
     {
     }
 

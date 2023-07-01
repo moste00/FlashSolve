@@ -1,3 +1,5 @@
+using flashsolve.compiler;
+
 namespace flashsolve.sampler.algorithms;
 using System.Diagnostics;
 using Microsoft.Z3;
@@ -8,7 +10,7 @@ public class Naive : Base
     protected readonly Context Ctx;
     protected readonly Dictionary<string, BitVecExpr>NamesToExprs;
     protected Dictionary<string, List<object>> NamesToValues;
-    public Naive(Config configs, uint noOutputs) : base(configs, noOutputs)
+    public Naive(Config configs, uint noOutputs, RandProblem problem) : base(configs, noOutputs, problem)
     {
         var (ctx, constraints, namestoexprs) = get_constraints();
         NamesToExprs = namestoexprs;
