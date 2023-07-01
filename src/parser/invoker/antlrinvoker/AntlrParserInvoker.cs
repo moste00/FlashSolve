@@ -26,6 +26,14 @@ class AntlrInvoker : ParserInvoker {
     }
 
     public void add_string(string svcode) {
-        throw new NotImplementedException();
+        var input = new AntlrInputStream(svcode);
+        var lexer = new SystemVerilogLexer(input);
+        var toks  = new CommonTokenStream(lexer);
+        var parser = new SystemVerilogParser(toks) {
+            BuildParseTree = true
+        };
+        var parseTree = parser.svprogram();
+        var ast = new CstVisitor().Visit(parseTree);
+        _asts.Add((SvAstRoot)ast);
     }
 }

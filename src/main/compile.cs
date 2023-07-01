@@ -13,5 +13,7 @@ public class Compile {
         var ast = invoker.Ast[0];
         var compiler = new Sv2Z3Compiler();
         var problem = compiler.Compile((SvConstraintProgram)ast);
+        
+        Console.WriteLine("s");
     }
 }
