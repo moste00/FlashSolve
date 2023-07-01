@@ -91,6 +91,30 @@ public class Sv2Z3Compiler {
             );
         }
         //TODO add other classes that inherit from SvConstraint.Expr
+        if (exp is SvUniqueness uniqueness)
+        {
+            var (constraintExpr,varNames) = Compile(uniqueness);
+            return (
+                Types.AssertBoolTypeOrFail(constraintExpr),
+                varNames
+            );
+        }
+        if (exp is SvImplication implication)
+        {
+            var (constraintExpr,varNames) = Compile(implication);
+            return (
+                Types.AssertBoolTypeOrFail(constraintExpr),
+                varNames
+            );
+        }
+        if (exp is SvIfElse ifElse)
+        {
+            var (constraintExpr,varNames) = Compile(ifElse);
+            return (
+                Types.AssertBoolTypeOrFail(constraintExpr),
+                varNames
+            );
+        }
         
         UnrecognizedAstNode.Throw(exp);
         //unreachable
@@ -104,6 +128,116 @@ public class Sv2Z3Compiler {
         UnrecognizedAstNode.Throw(exd);
         //unreachable
         return (null, null);
+    }
+    public (Z3Expr, HashSet<string>) Compile(SvUniqueness uniquenessExpr)
+    {
+        var (operand, varNames) = Compile(uniquenessExpr.OpenRange);
+        return (
+            Z3Expr.From(_z3Ctx.MkDistinct(
+                    operand
+                    )),
+            varNames
+        );
+        // Z3Expr.From(_z3Ctx.MkDistinct(operandVarNames.Select(varName => _currProblem.GetVar(varName))))
+    }
+
+    public (Z3Expr, HashSet<string>) Compile(SvImplication implicationExpr)
+    {
+        var (antecedent, antecedentVarNames) = Compile(implicationExpr.Expr);
+        var (consequent, consequentVarNames) = Compile(implicationExpr.ConstraintSet);
+        antecedentVarNames.UnionWith(consequentVarNames);
+        var varNames = antecedentVarNames;
+
+        return (
+            Z3Expr.From(_z3Ctx.MkImplies(
+                Types.AssertBoolTypeOrFail(antecedent),
+                Types.AssertBoolTypeOrFail(consequent)
+            )),
+            varNames
+        );
+        
+    }
+
+    public (Z3Expr, HashSet<string>) Compile(SvIfElse ifThenElseExpr)
+    {
+        var (condition, conditionVarNames) = Compile(ifThenElseExpr.Expr);
+        var (thenExpr, thenVarNames) = Compile(ifThenElseExpr.Then);
+        Z3Expr? elseExpr = null;
+        HashSet<string>? elseVarNames = null;
+        conditionVarNames.UnionWith(thenVarNames);
+        if (ifThenElseExpr.Else is not null) {
+            (elseExpr,elseVarNames) = Compile(ifThenElseExpr.Else);
+            conditionVarNames.UnionWith(elseVarNames);
+        }
+        
+        var varNames = conditionVarNames;
+        if (ifThenElseExpr.Else is null) {
+            return (
+                Z3Expr.From(_z3Ctx.MkImplies(
+                    Types.AssertBoolTypeOrFail(condition),
+                    Types.AssertBoolTypeOrFail(thenExpr)
+                )),
+                varNames
+            );
+        }
+        return (
+            Z3Expr.From((BoolExpr)_z3Ctx.MkITE(
+                Types.AssertBoolTypeOrFail(condition),
+                Types.AssertBoolTypeOrFail(thenExpr),
+                Types.AssertBoolTypeOrFail(elseExpr)
+            )),
+            varNames
+        );
+    }
+    
+    public (Z3Expr, HashSet<string>) Compile(SvConstraintSet constraintSet)
+    {
+        var constraintExprs = new List<BoolExpr>();
+        var varNames = new HashSet<string>();
+
+        foreach (var expr in constraintSet)
+        {
+            var (constraintExpr, exprVarNames) = Compile(expr);
+            constraintExprs.Add(constraintExpr);
+            varNames.UnionWith(exprVarNames);
+        }
+
+        var constraintExprsArray = constraintExprs.ToArray();
+        var combinedExpr = _z3Ctx.MkAnd(constraintExprsArray);
+        return (Z3Expr.From(combinedExpr)
+            , varNames
+            );
+    }
+    
+    public (List<Expr>, HashSet<string>) Compile(SvOpenRange openRange)
+    {
+        var rangeExprs = new List<Expr>();
+        var varNames = new HashSet<string>();
+
+        foreach (var valueRange in openRange)
+        {
+            var (rangeExpr, rangeVarNames) = Compile(valueRange);
+            rangeExprs.Add(rangeExpr);
+            varNames.UnionWith(rangeVarNames);
+        }
+        
+        return (rangeExprs,
+            varNames
+            );
+    }
+    public (Expr, HashSet<string>) Compile(SvValueRange valueRange)
+    {
+        // var varNames = new Tuple<SvExpr, SvExpr>();
+        // var varNames = new HashSet<string>();
+
+        if (valueRange.Item2 is not null) {
+            throw new UnsupportedOperation("The range of 2 values is not supported yet");
+            return (null, null);
+        }
+        var (rangeExpr, varNames) = Compile(valueRange.Item1);
+        return (Types.AssertBitVecTypeOrFail(rangeExpr),
+                varNames
+            );
     }
 
     public (Z3Expr, HashSet<string>) Compile(SvExpr ex) {

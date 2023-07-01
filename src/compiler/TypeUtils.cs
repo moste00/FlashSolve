@@ -45,6 +45,13 @@ public static class Types {
 
         throw new TypeMismatch($"Expected the 2 objects ${left} and ${right} to have Bool type, found that they are not.");
     }
-    
-    
+
+
+    public static Expr 
+        AssertBitVecTypeOrFail(Z3Expr expr) {
+            if (expr is Z3Expr.BitVec e) {
+                return (e);
+            }
+            throw new TypeMismatch($"Expected the object ${expr} to have BitVec type, found that the object is not.");
+    }
 }
