@@ -1,6 +1,7 @@
 namespace flashsolve.sampler.algorithms;
 using System.Diagnostics;
 using Microsoft.Z3;
+using System.Collections.Concurrent;
 
 public class Hash: Naive
 {
@@ -168,5 +169,12 @@ public class Hash: Naive
     {
         run_hash_algorithm(NoOutputs);
         print_output_dictionary(NamesToValues);
+    }
+    
+    public override void test_algorithm(ConcurrentDictionary<string, Dictionary<string, List<object>>> results)
+    {
+        run_hash_algorithm(TestingNoOutputs);
+        var added = results.TryAdd("Hash", NamesToValues);
+        throw new Exception("test_algorithm of (Hash) could not add it's results to the ConcurrentDictionary");
     }
 }

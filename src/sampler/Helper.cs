@@ -68,5 +68,70 @@ public static class Helper
         };
         return inputConstraint;
     }
+
+    public static double EuclideanDistance(List<object> point1, List<object> point2)
+    {
+        double sumOfSquares = 0;
+        for (int i = 0; i < point1.Count ; i++)
+        {
+            double p1 = double.Parse(point1[i].ToString()!);
+            double p2 = double.Parse(point2[i].ToString()!);
+            sumOfSquares += Math.Pow(p1 - p2, 2);
+        }
+        return Math.Sqrt(sumOfSquares);
+    }
+    public static double calculate_spread(Dictionary<string, List<object>> namesToValues)
+    {
+        string outputHashKey = "hash";
+        string outputDurationKey = "duration_in_millis";
+        var keys = namesToValues.Keys.ToList();
+        var numPoints = namesToValues[keys[0]].Count;
+
+        var dist = 0.0;
+        for (int i = 0; i < numPoints; i++)
+            for (int j = i+1; j < numPoints; j++)
+            {
+                List<object> p1 = new List<object>();
+                List<object> p2 = new List<object>();
+                foreach (var pi in keys)
+                {
+                    if(pi == outputHashKey || pi == outputDurationKey)
+                        continue;
+                    p1.Add(namesToValues[pi][i]);
+                }
+                foreach (var pi in keys)
+                {
+                    if(pi == outputHashKey || pi == outputDurationKey)
+                        continue;
+                    p2.Add(namesToValues[pi][j]);
+                }
+
+                dist += EuclideanDistance(p1, p2);
+            }
+
+        return dist/(numPoints*(numPoints-1)/2);
+    }
+    
+    public static (double, double) CalcTimePerSolution(Dictionary<string, List<object>> namesToValues)
+    {
+        string outputDurationKey = "duration_in_millis";
+        double accTime = 0.0;
+        double maxTime = 0.0;
+        int numPoints = namesToValues[outputDurationKey].Count;
+        List<object> times = namesToValues[outputDurationKey];
+
+        for (int i = 0; i < numPoints; i++)
+        {
+            var t = double.Parse(times[i].ToString()!);
+            double currentTime = t / 1000.0;
+            accTime += currentTime;
+            if (currentTime > maxTime)
+            {
+                maxTime = currentTime;
+            }
+        }
+
+        return (accTime, maxTime);
+    }
     
 }

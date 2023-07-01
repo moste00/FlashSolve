@@ -6,18 +6,18 @@ using Microsoft.Z3;
 using flashsolve.sampler.algorithms;
 using flashsolve.sampler;
 
-public class SampleV1
+public class Sample
 {
     //constants
     private const string ConfigFilePath = "src/main/config.json";
     
     // members
-    private Config _configs;
+    private readonly Config _configs;
     private uint _numOfOutputs;
     // note: missing: cadidate algorithm, constraints variable
     
     // Constructor
-    public SampleV1(uint numOfOutputs)
+    public Sample(uint numOfOutputs)
     {
         _configs = new Config(ConfigFilePath);
         _numOfOutputs = numOfOutputs;
@@ -27,15 +27,16 @@ public class SampleV1
     {
         // runs the algorithms in the config
         // then choose the best one
+
     }
 
     public void run()
     {
         // should run the candidate algorithm with respect to the output configs
         // then writes the output results
-        var sampler = new Hybird(_configs, 1000);
+        var sampler = new Hybrid(_configs, _numOfOutputs,2);
         Console.WriteLine("************************************************************************************");
-        sampler.run_hybird_alternate(2);
+        sampler.run_hybrid_alternate();
         Console.WriteLine("************************************************************************************");
     }
 
