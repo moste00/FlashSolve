@@ -6,18 +6,18 @@ public class Config
     //members
     public uint TestingSampleSize;
     public uint TestingTimeLimitSecs;
-    public bool TestingAlgorithmsNaive;
-    public bool TestingAlgorithmsMaxsmt;
-    public bool TestingAlgorithmsHash;
+    public int TestingAlgorithmsNaive;
+    public int TestingAlgorithmsMaxsmt;
+    public int TestingAlgorithmsHash;
+    public int TestingAlgorithmsHybrid0;
+    public int TestingAlgorithmsHybrid1;
+    public int TestingAlgorithmsHybrid2;
     public bool SamplerTimer;
     public uint HashConstantsHashSize;
     public uint HashConstantsBitsCounts;
     public bool paralizedHashOn;
     public float paralizedHashThreadPercentage;
-    public bool TestingAlgorithmsHybird0;
-    public bool TestingAlgorithmsHybird1;
-    public bool TestingAlgorithmsHybird2;
-    
+
     //constructor
     public Config(string path)
     {
@@ -31,12 +31,12 @@ public class Config
 
         // Accessing values from the "algorithms" object within "testing"
         JsonElement algorithms = testingDiffAlg.GetProperty("algorithms");
-        TestingAlgorithmsNaive = algorithms.GetProperty("naive").GetInt32() == 1;
-        TestingAlgorithmsMaxsmt = algorithms.GetProperty("maxsmt").GetInt32() == 1;
-        TestingAlgorithmsHash = algorithms.GetProperty("hash").GetInt32() == 1;
-        TestingAlgorithmsHybird0 = algorithms.GetProperty("hybird0").GetInt32() == 1;
-        TestingAlgorithmsHybird1 = algorithms.GetProperty("hybird1").GetInt32() == 1;
-        TestingAlgorithmsHybird2 = algorithms.GetProperty("hybird2").GetInt32() == 1;
+        TestingAlgorithmsNaive = algorithms.GetProperty("naive").GetInt32();
+        TestingAlgorithmsMaxsmt = algorithms.GetProperty("maxsmt").GetInt32();
+        TestingAlgorithmsHash = algorithms.GetProperty("hash").GetInt32();
+        TestingAlgorithmsHybrid0 = algorithms.GetProperty("hybird0").GetInt32();
+        TestingAlgorithmsHybrid1 = algorithms.GetProperty("hybird1").GetInt32();
+        TestingAlgorithmsHybrid2 = algorithms.GetProperty("hybird2").GetInt32();
         
 
         // Accessing values from the "sampler" object

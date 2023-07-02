@@ -1,5 +1,6 @@
 namespace flashsolve.sampler;
 using Microsoft.Z3;
+using System.Numerics;
 
 public static class Helper
 {
@@ -134,4 +135,31 @@ public static class Helper
         return (accTime, maxTime);
     }
     
+    public static void print_output_dictionary(Dictionary<string, List<object>> namesToValues)
+    {
+        int maxLength = namesToValues.Values.Max(list => list.Count);
+
+        for (int i = 0; i < maxLength; i++)
+        {
+            foreach (var kvp in namesToValues)
+            {
+                var key = kvp.Key;
+                var values = kvp.Value;
+
+                if (i < values.Count)
+                {
+                    if(key == "duration_in_millis")
+                        Console.Write("   | " + values[i]+ " ms");
+                    else
+                        //Console.Write(values[i]+ " ");
+                        Console.Write("0x" + BigInteger.Parse(values[i].ToString()).ToString("x")+ " ");
+                }
+                else
+                {
+                    Console.Write(" - ");
+                }
+            }
+            Console.WriteLine();
+        }
+    }
 }

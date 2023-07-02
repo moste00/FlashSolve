@@ -31,7 +31,7 @@ public class Hybrid : Hash
         uint currentNumSols = 0;
         var runNaive = true;
 
-        while (currentNumSols != thresh )
+        while (currentNumSols < thresh )
         {
             uint newCurrentNumSols;
             if(runNaive)
@@ -45,17 +45,18 @@ public class Hybrid : Hash
             currentNumSols = newCurrentNumSols;
         }
     }
-
-    public void run_hybrid_alternate()
+    
+    public override void run_algorithm()
     {
         run_hybrid_alternate_algorithm(NoOutputs);
-        print_output_dictionary(NamesToValues);
+        Helper.print_output_dictionary(NamesToValues);
     }
     public override void test_algorithm(ConcurrentDictionary<string, Dictionary<string, List<object>>> results)
     {
         run_hybrid_alternate_algorithm(TestingNoOutputs);
-        var added = results.TryAdd("Hybrid"+_type, NamesToValues);
-        throw new Exception("test_algorithm of (Hybrid) could not add it's results to the ConcurrentDictionary");
+        var added = results.TryAdd($"Hybrid{_type}", NamesToValues);
+        if(!added)
+            throw new Exception("test_algorithm of (Hybrid) could not add it's results to the ConcurrentDictionary");
     }
 
 }
