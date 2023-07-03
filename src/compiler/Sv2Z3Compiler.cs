@@ -136,15 +136,21 @@ public class Sv2Z3Compiler {
     public (Z3Expr, HashSet<string>) Compile(SvUniqueness uniquenessExpr)
     {
         var (operand, varNames) = Compile(uniquenessExpr.OpenRange);
+        List<Expr> operandsDistinct = new List<Expr>();
+        foreach (var entry in operand) {
+            if (entry.Item2 != null) {
+                throw new UnsupportedOperation("The range of 2 values is not supported in Uniqueness expressions");
+            }
+            operandsDistinct.Add(entry.Item1);
+        }
+        
         return (
             Z3Expr.From(_z3Ctx.MkDistinct(
-                    operand
+                    operandsDistinct
                     )),
             varNames
         );
-        // Z3Expr.From(_z3Ctx.MkDistinct(operandVarNames.Select(varName => _currProblem.GetVar(varName))))
     }
-
     public (Z3Expr, HashSet<string>) Compile(SvImplication implicationExpr)
     {
         var (antecedent, antecedentVarNames) = Compile(implicationExpr.Expr);
@@ -213,37 +219,6 @@ public class Sv2Z3Compiler {
             );
     }
     
-    public (List<Expr>, HashSet<string>) Compile(SvOpenRange openRange)
-    {
-        var rangeExprs = new List<Expr>();
-        var varNames = new HashSet<string>();
-
-        foreach (var valueRange in openRange)
-        {
-            var (rangeExpr, rangeVarNames) = Compile(valueRange);
-            rangeExprs.Add(rangeExpr);
-            varNames.UnionWith(rangeVarNames);
-        }
-        
-        return (rangeExprs,
-            varNames
-            );
-    }
-    public (Expr, HashSet<string>) Compile(SvValueRange valueRange)
-    {
-        // var varNames = new Tuple<SvExpr, SvExpr>();
-        // var varNames = new HashSet<string>();
-
-        if (valueRange.Item2 is not null) {
-            throw new UnsupportedOperation("The range of 2 values is not supported in Uniqueness expressions");
-            return (null, null);
-        }
-        var (rangeExpr, varNames) = Compile(valueRange.Item1);
-        return (Types.AssertBitVecTypeOrFail(rangeExpr),
-                varNames
-            );
-    }
-
     public (Z3Expr, HashSet<string>) Compile(SvExpr ex) {
         if (ex is SvBinaryExpression be) {
             return Compile(be);
@@ -256,9 +231,13 @@ public class Sv2Z3Compiler {
         if (ex is SvPrimary pe) {
             return Compile(pe);
         }
-        
-        
-        UnrecognizedAstNode.Throw(ex);
+
+        if (ex is SvInsideExpression ie) {
+            return Compile(ie);
+        }
+
+
+            UnrecognizedAstNode.Throw(ex);
         //unreachable
         return (null, null);
     }
@@ -670,6 +649,64 @@ public class Sv2Z3Compiler {
                 //unreachable
                 return (null, null);
         }    
+    }
+    public (List<(Expr,Expr?)>, HashSet<string>) Compile(SvOpenRange openRange)
+    {
+        var rangeExprs = new List<(Expr,Expr?)>();
+        var varNames = new HashSet<string>();
+
+        foreach (var valueRange in openRange)
+        {
+            var (rangeExpr, rangeVarNames) = Compile(valueRange);
+            rangeExprs.Add(rangeExpr);
+            varNames.UnionWith(rangeVarNames);
+        }
+        
+        return (rangeExprs,
+                varNames
+            );
+    }
+    public ((Expr, Expr?), HashSet<string>) Compile(SvValueRange valueRange)
+    {
+        var (rangeExpr1, varNames1) = Compile(valueRange.Item1);
+        Z3Expr rangeExpr2 = new Z3Expr();
+        HashSet<string> varNames2 = new HashSet<string>();
+        if (valueRange.Item2 != null) {
+            (rangeExpr2, varNames2) = Compile(valueRange.Item2);
+            varNames1.UnionWith(varNames2);
+            return ((Types.AssertBitVecTypeOrFail(rangeExpr1), 
+                        Types.AssertBitVecTypeOrFail(rangeExpr2)),
+                    varNames1
+                );
+        }
+        return ((Types.AssertBitVecTypeOrFail(rangeExpr1),
+                    null),
+                varNames1
+            );
+    }
+
+    public (Z3Expr, HashSet<string>) Compile(SvInsideExpression ie) {
+        var (exprZ3, exprVars) = Compile(ie.Expr);
+        var (openRangeZ3, openRangeVars) = Compile(ie.OpenRange);
+        var exprConversion = Types.AssertBitVecTypeOrFail(exprZ3);
+        Expr finalExpr ;
+        if (openRangeZ3[0].Item2 == null) {
+            finalExpr = _z3Ctx.MkEq(exprConversion, openRangeZ3[0].Item1);
+        }
+        else {
+            finalExpr = (Expr)_z3Ctx.MkRange((SeqExpr)openRangeZ3[0].Item1, (SeqExpr)openRangeZ3[0].Item2);
+        }
+        for (int i=1; i<openRangeZ3.Count; i++) {
+            if (openRangeZ3[i].Item2 == null) {
+                finalExpr = _z3Ctx.MkOr((BoolExpr)finalExpr,_z3Ctx.MkEq(exprConversion, openRangeZ3[i].Item1));
+            }
+            else {
+                var range = (Expr)_z3Ctx.MkRange((SeqExpr)openRangeZ3[i].Item1, (SeqExpr)openRangeZ3[i].Item2);
+                finalExpr = _z3Ctx.MkOr((BoolExpr)finalExpr,(BoolExpr)range);
+            }
+        }
+        return (Z3Expr.From((BoolExpr)finalExpr),
+            exprVars);
     }
     public (Z3Expr, HashSet<string>) Compile(SvPrimary prim) {
         if (prim is SvLiteral lit) {
