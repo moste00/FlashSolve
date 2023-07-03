@@ -7,13 +7,25 @@ public class SvBitData : SvAstNode {
     private Random rand;
     
     public SvBitData(uint start, uint end) {
-        startIndex = start;
-        endIndex = end;
+        if (start < end) {
+            startIndex = start;
+            endIndex = end;
+        }
+        else {
+            startIndex = end;
+            endIndex = start;
+        }
     }
     public SvBitData(CstRef cst, uint start, uint end) {
         cstnode = cst;
-        startIndex = start;
-        endIndex = end;
+        if (start < end) {
+            startIndex = start;
+            endIndex = end;
+        }
+        else {
+            startIndex = end;
+            endIndex = start;
+        }
     }
 
     public enum Random {

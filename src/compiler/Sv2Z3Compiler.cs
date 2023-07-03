@@ -1,3 +1,4 @@
+using flashsolve.parser.invoker.antlrinvoker;
 using Microsoft.Z3;
 
 namespace flashsolve.compiler; 
@@ -234,7 +235,7 @@ public class Sv2Z3Compiler {
         // var varNames = new HashSet<string>();
 
         if (valueRange.Item2 is not null) {
-            throw new UnsupportedOperation("The range of 2 values is not supported yet");
+            throw new UnsupportedOperation("The range of 2 values is not supported in Uniqueness expressions");
             return (null, null);
         }
         var (rangeExpr, varNames) = Compile(valueRange.Item1);
@@ -255,6 +256,7 @@ public class Sv2Z3Compiler {
         if (ex is SvPrimary pe) {
             return Compile(pe);
         }
+        
         
         UnrecognizedAstNode.Throw(ex);
         //unreachable
@@ -564,27 +566,105 @@ public class Sv2Z3Compiler {
 
     
     public (Z3Expr, HashSet<string>) Compile(SvUnaryExpression un) {
+        var (operandExpr, operandVars) = Compile(un.Operand); // Compile the operand expression
         switch (un.OP) {
             case SvUnaryExpression.UnaryOP.Plus:
-                throw new NotImplementedException();
+                return (operandExpr, operandVars);
+            
             case SvUnaryExpression.UnaryOP.Minus:
-                throw new NotImplementedException();
+                var operandExprArith = Types.AssertBitVecTypeOrFail(operandExpr);
+                var minusExpr = _z3Ctx.MkUnaryMinus((ArithExpr)operandExprArith);
+                var minusExpr2 = (Expr) minusExpr;
+                return (Z3Expr.From((BitVecExpr)minusExpr2),
+                    operandVars);
+            
             case SvUnaryExpression.UnaryOP.Negation:
-                throw new NotImplementedException();
+                var operandExprBool = Types.AssertBoolTypeOrFail(operandExpr);
+                var negatedExpr = _z3Ctx.MkNot(operandExprBool);
+                return (Z3Expr.From(negatedExpr),
+                    operandVars);
+            
             case SvUnaryExpression.UnaryOP.Complement:
-                throw new NotImplementedException();
+                var complementExprBit = Types.AssertBitVecTypeOrFail(operandExpr);
+                var complementExpr = _z3Ctx.MkBVNot((BitVecExpr)complementExprBit);
+                return (Z3Expr.From(complementExpr),
+                    operandVars);
+            
             case SvUnaryExpression.UnaryOP.BitwiseAnd:
-                throw new NotImplementedException();
+                var bitwiseAndBit = (BitVecExpr)Types.AssertBitVecTypeOrFail(operandExpr);
+                if (bitwiseAndBit.SortSize <= 1) {
+                    throw new IllegalExpression("The bit vector length should be greater than 1 in order to use this operator");
+                }
+                var bitwiseAndExpr = _z3Ctx.MkBVRedAND(bitwiseAndBit);
+                return (Z3Expr.From(bitwiseAndExpr), 
+                    operandVars);
+            
             case SvUnaryExpression.UnaryOP.BitwiseNand:
-                throw new NotImplementedException();
+                var bitwiseNandBit = (BitVecExpr)Types.AssertBitVecTypeOrFail(operandExpr);
+                if (bitwiseNandBit.SortSize <= 1) {
+                    throw new IllegalExpression("The bit vector length should be greater than 1 in order to use this operator");
+                }
+                var bitwiseNandExpr = _z3Ctx.MkBVRedAND(bitwiseNandBit);
+                var convertBitToBool = _z3Ctx.MkEq(bitwiseNandExpr, _z3Ctx.MkBV(1, bitwiseNandExpr.SortSize));;
+                // var bitwiseNandBool = _z3Ctx.MkNot((BoolExpr)convertBitToBool);
+                return (Z3Expr.From(convertBitToBool), 
+                    operandVars);
+            
             case SvUnaryExpression.UnaryOP.BitwiseOr:
-                throw new NotImplementedException();
+                var bitwiseOrBit = (BitVecExpr)Types.AssertBitVecTypeOrFail(operandExpr);
+                if (bitwiseOrBit.SortSize <= 1) {
+                    throw new IllegalExpression("The bit vector length should be greater than 1 in order to use this operator");
+                }
+                var bitwiseOrExpr = _z3Ctx.MkBVRedAND(bitwiseOrBit);
+                return (Z3Expr.From(bitwiseOrExpr), 
+                    operandVars);
+            
             case SvUnaryExpression.UnaryOP.BitwiseNor:
-                throw new NotImplementedException();
+                var bitwiseNorBit = (BitVecExpr)Types.AssertBitVecTypeOrFail(operandExpr);
+                if (bitwiseNorBit.SortSize <= 1) {
+                    throw new IllegalExpression("The bit vector length should be greater than 1 in order to use this operator");
+                }
+                var bitwiseNorExpr = _z3Ctx.MkBVRedAND(bitwiseNorBit);
+                var convertBitToBool2 = _z3Ctx.MkEq(bitwiseNorExpr, _z3Ctx.MkBV(1, bitwiseNorExpr.SortSize));
+                // var bitwiseNorBool = _z3Ctx.MkNot((BoolExpr)convertBitToBool2);
+                return (Z3Expr.From(convertBitToBool2), 
+                    operandVars);
+            
             case SvUnaryExpression.UnaryOP.Xor:
-                throw new NotImplementedException();
+                var bitwiseXorBit = (BitVecExpr)Types.AssertBitVecTypeOrFail(operandExpr);
+                if (bitwiseXorBit.SortSize <= 1) {
+                    throw new IllegalExpression("The bit vector length should be greater than 1 in order to use this operator");
+                }
+                var firstBitXor = _z3Ctx.MkExtract(0,0,bitwiseXorBit);
+                var firstInputXor = _z3Ctx.MkEq(firstBitXor, _z3Ctx.MkBV(1, firstBitXor.SortSize));
+                BoolExpr finalResultXor = null;
+                var sizeXor = bitwiseXorBit.SortSize;
+                for (uint i = 1; i < sizeXor; i++) {
+                    var nextBitXor = _z3Ctx.MkExtract(i,i,bitwiseXorBit);
+                    var secondInputXor = _z3Ctx.MkEq(nextBitXor, _z3Ctx.MkBV(1, nextBitXor.SortSize));
+                    finalResultXor = _z3Ctx.MkXor(firstInputXor, secondInputXor);
+                    firstInputXor = finalResultXor;
+                }
+                return (Z3Expr.From(finalResultXor),
+                        operandVars);
+            
             case SvUnaryExpression.UnaryOP.Xnor:
-                throw new NotImplementedException();
+                var bitwiseXnorBit = (BitVecExpr)Types.AssertBitVecTypeOrFail(operandExpr);
+                if (bitwiseXnorBit.SortSize <= 1) {
+                    throw new IllegalExpression("The bit vector length should be greater than 1 in order to use this operator");
+                }
+                var firstBitXnor = _z3Ctx.MkExtract(0,0,bitwiseXnorBit);
+                BitVecExpr finalResultXnor = null;
+                var sizeXnor = bitwiseXnorBit.SortSize;
+                for (uint i = 1; i < sizeXnor; i++) {
+                    var nextBitXnor = _z3Ctx.MkExtract(i,i,bitwiseXnorBit);
+                    finalResultXnor = _z3Ctx.MkBVXNOR(firstBitXnor, nextBitXnor);
+                    firstBitXnor = finalResultXnor;
+                }
+                var finalResultBool = _z3Ctx.MkEq(finalResultXnor, _z3Ctx.MkBV(1, finalResultXnor.SortSize));
+                return (Z3Expr.From(finalResultBool),
+                    operandVars);
+            
             default:
                 UnrecognizedAstPropertyValue.Throw(un.OP);
                 //unreachable
