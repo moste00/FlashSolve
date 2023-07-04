@@ -8,6 +8,11 @@ public class NonReachableControlFlow : Exception {
     public NonReachableControlFlow(string msg) : base(msg) {}
     public NonReachableControlFlow(string msg,Exception inner) : base(msg,inner) {}
 }
+public class UnsupportedSvSubset : Exception {
+    public UnsupportedSvSubset() {}
+    public UnsupportedSvSubset(string msg) : base(msg) {}
+    public UnsupportedSvSubset(string msg,Exception inner) : base(msg,inner) {}
+}
 public class IllegalExpression : Exception {
     public IllegalExpression() {}
     public IllegalExpression(string msg) : base(msg) {}
@@ -110,8 +115,10 @@ public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
         return context.constraint_expr().Accept(this);
     }
 
-    public SvAstNode VisitExpressionOrDist(SystemVerilogParser.ExpressionOrDistContext context)
-    {
+    public SvAstNode VisitExpressionOrDist(SystemVerilogParser.ExpressionOrDistContext context) {
+        if (context.SOFT() != null) {
+            throw new UnsupportedSvSubset("Soft constraints unsupported yet");
+        }
         return context.expression_or_dist().Accept(this);
     }
 
@@ -176,7 +183,6 @@ public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
 
     public SvAstNode VisitExprOrDist(SystemVerilogParser.ExprOrDistContext context) {
         return context.expression().Accept(this);
-
     }
 
     public SvAstNode VisitBitWiseOrOperator(SystemVerilogParser.BitWiseOrOperatorContext context) {
@@ -286,7 +292,13 @@ public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
     public SvAstNode VisitAddSubOperator(SystemVerilogParser.AddSubOperatorContext context) {
         var left = (SvExpr)context.expression()[0].Accept(this);
         var right = (SvExpr)context.expression()[1].Accept(this);
-        var op = context.BINARY_OPERATOR_3().GetText();
+        string op = "";
+        if (context.PLUS() != null) {
+            op = context.PLUS().GetText();
+        }
+        else if (context.MINUS() != null) {
+            op = context.MINUS().GetText();
+        }
         SvBinaryExpression.Op finalOp; 
         switch (op) {
             case "+":
@@ -339,7 +351,10 @@ public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
     public SvAstNode VisitBitWiseXorXnorOperator(SystemVerilogParser.BitWiseXorXnorOperatorContext context) {
         var left = (SvExpr)context.expression()[0].Accept(this);
         var right = (SvExpr)context.expression()[1].Accept(this);
-        var op = context.BINARY_OPERATOR_8().GetText();
+        string op = "";
+        if (context.BITWISE_XOR_XNOR() != null) {
+            op = context.BITWISE_XOR_XNOR().GetText();
+        }
         SvBinaryExpression.Op finalOp; 
         switch (op) {
             case "^":
@@ -357,7 +372,25 @@ public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
     }
 
     public SvAstNode VisitUnaryOperator(SystemVerilogParser.UnaryOperatorContext context) {
-        var op = context.UNARY_OPERATOR().GetText();
+        string op = "";
+        if (context.PLUS() != null) {
+            op = context.PLUS().GetText();
+        }
+        else if (context.MINUS() != null) {
+            op = context.MINUS().GetText();
+        }
+        else if (context.BITWISE_AND() != null) {
+            op = context.BITWISE_AND().GetText();
+        }
+        else if (context.BITWISE_OR() != null) {
+            op = context.BITWISE_OR().GetText();
+        }
+        else if (context.BITWISE_XOR_XNOR() != null) {
+            op = context.BITWISE_XOR_XNOR().GetText();
+        }
+        else if (context.UNARY_OPERATOR_EXLUSIVE() != null) {
+            op = context.UNARY_OPERATOR_EXLUSIVE().GetText();
+        }
         var primary = (SvPrimary)context.primary().Accept(this);
         SvUnaryExpression.UnaryOP finalOp;
         switch (op) {
@@ -566,8 +599,8 @@ public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
     }
 
     public SvAstNode VisitBitDataType(SystemVerilogParser.BitDataTypeContext context) {
-        var startIndex = uint.Parse(context.DECIMAL_NUMBER()[1].GetText());
-        var endIndex = uint.Parse(context.DECIMAL_NUMBER()[0].GetText());
+        var startIndex = uint.Parse(context.NUMBER()[1].GetText());
+        var endIndex = uint.Parse(context.NUMBER()[0].GetText());
         SvBitData bitData = new SvBitData(startIndex, endIndex);
         return bitData;
     }

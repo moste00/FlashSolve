@@ -268,7 +268,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVAdd(sameSizeL, sameSizeR)),
                     varNames
@@ -283,7 +283,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVSub(sameSizeL, sameSizeR)),
                     varNames
@@ -298,7 +298,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVMul(sameSizeL, sameSizeR)),
                     varNames
@@ -313,7 +313,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVSDiv(sameSizeL, sameSizeR)),
                     varNames
@@ -328,7 +328,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVSMod(sameSizeL, sameSizeR)),
                     varNames
@@ -346,7 +346,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVLSHR(sameSizeL, sameSizeR)),
                     varNames
@@ -363,7 +363,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVASHR(sameSizeL, sameSizeR)),
                     varNames
@@ -381,7 +381,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVSLT(sameSizeL, sameSizeR)),
                     varNames
@@ -396,7 +396,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVSGT(sameSizeL, sameSizeR)),
                     varNames
@@ -411,7 +411,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVSLE(sameSizeL, sameSizeR)),
                     varNames
@@ -426,7 +426,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVSGE(sameSizeL, sameSizeR)),
                     varNames
@@ -441,7 +441,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkEq(sameSizeL, sameSizeR)),
                     varNames
@@ -456,7 +456,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkNot(_z3Ctx.MkEq(sameSizeL, sameSizeR))),
                     varNames
@@ -477,7 +477,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVAND(sameSizeL, sameSizeR)),
                     varNames
@@ -492,7 +492,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVOR(sameSizeL, sameSizeR)),
                     varNames
@@ -507,7 +507,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVXOR(sameSizeL, sameSizeR)),
                     varNames
@@ -522,7 +522,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVXNOR(sameSizeL, sameSizeR)),
                     varNames
@@ -559,12 +559,13 @@ public class Sv2Z3Compiler {
             case SvUnaryExpression.UnaryOP.Plus:
                 return (operandExpr, operandVars);
             
-            case SvUnaryExpression.UnaryOP.Minus:
-                var operandExprArith = Types.AssertBitVecTypeOrFail(operandExpr);
-                var minusExpr = _z3Ctx.MkUnaryMinus((ArithExpr)operandExprArith);
-                var minusExpr2 = (Expr) minusExpr;
-                return (Z3Expr.From((BitVecExpr)minusExpr2),
-                    operandVars);
+            // case SvUnaryExpression.UnaryOP.Minus:
+            //     var operandExprBv = Types.AssertBitVecTypeOrFail(operandExpr);
+            //     var operandExprArith = _z3Ctx.MkBV2Int(operandExprBv, true);
+            //     var minusExprArith = _z3Ctx.MkUnaryMinus(operandExprArith);
+            //     var minusExprBv = _z3Ctx.MkInt2BV(operandExprBv.Expr.SortSize,minusExprArith);
+            //     return (Z3Expr.From(minusExprBv),
+            //         operandVars);
             
             case SvUnaryExpression.UnaryOP.Negation:
                 var operandExprBool = Types.AssertBoolTypeOrFail(operandExpr);
@@ -574,13 +575,13 @@ public class Sv2Z3Compiler {
             
             case SvUnaryExpression.UnaryOP.Complement:
                 var complementExprBit = Types.AssertBitVecTypeOrFail(operandExpr);
-                var complementExpr = _z3Ctx.MkBVNot((BitVecExpr)complementExprBit);
+                var complementExpr = _z3Ctx.MkBVNot(complementExprBit);
                 return (Z3Expr.From(complementExpr),
                     operandVars);
             
             case SvUnaryExpression.UnaryOP.BitwiseAnd:
-                var bitwiseAndBit = (BitVecExpr)Types.AssertBitVecTypeOrFail(operandExpr);
-                if (bitwiseAndBit.SortSize <= 1) {
+                var bitwiseAndBit = Types.AssertBitVecTypeOrFail(operandExpr);
+                if (bitwiseAndBit.Expr.SortSize <= 1) {
                     throw new IllegalExpression("The bit vector length should be greater than 1 in order to use this operator");
                 }
                 var bitwiseAndExpr = _z3Ctx.MkBVRedAND(bitwiseAndBit);
@@ -588,45 +589,47 @@ public class Sv2Z3Compiler {
                     operandVars);
             
             case SvUnaryExpression.UnaryOP.BitwiseNand:
-                var bitwiseNandBit = (BitVecExpr)Types.AssertBitVecTypeOrFail(operandExpr);
-                if (bitwiseNandBit.SortSize <= 1) {
+                var bitwiseNandBit = Types.AssertBitVecTypeOrFail(operandExpr);
+                if (bitwiseNandBit.Expr.SortSize <= 1) {
                     throw new IllegalExpression("The bit vector length should be greater than 1 in order to use this operator");
                 }
                 var bitwiseNandExpr = _z3Ctx.MkBVRedAND(bitwiseNandBit);
-                var convertBitToBool = _z3Ctx.MkEq(bitwiseNandExpr, _z3Ctx.MkBV(1, bitwiseNandExpr.SortSize));;
-                // var bitwiseNandBool = _z3Ctx.MkNot((BoolExpr)convertBitToBool);
-                return (Z3Expr.From(convertBitToBool), 
-                    operandVars);
+                var convertBitToBoolNand = _z3Ctx.MkEq(bitwiseNandExpr, _z3Ctx.MkBV(1, bitwiseNandExpr.SortSize));
+                return (Z3Expr.From(
+                        _z3Ctx.MkNot(convertBitToBoolNand)), 
+                    operandVars
+                );
             
             case SvUnaryExpression.UnaryOP.BitwiseOr:
-                var bitwiseOrBit = (BitVecExpr)Types.AssertBitVecTypeOrFail(operandExpr);
-                if (bitwiseOrBit.SortSize <= 1) {
+                var bitwiseOrBit = Types.AssertBitVecTypeOrFail(operandExpr);
+                if (bitwiseOrBit.Expr.SortSize <= 1) {
                     throw new IllegalExpression("The bit vector length should be greater than 1 in order to use this operator");
                 }
-                var bitwiseOrExpr = _z3Ctx.MkBVRedAND(bitwiseOrBit);
+                var bitwiseOrExpr = _z3Ctx.MkBVRedOR(bitwiseOrBit);
                 return (Z3Expr.From(bitwiseOrExpr), 
                     operandVars);
             
             case SvUnaryExpression.UnaryOP.BitwiseNor:
-                var bitwiseNorBit = (BitVecExpr)Types.AssertBitVecTypeOrFail(operandExpr);
-                if (bitwiseNorBit.SortSize <= 1) {
+                var bitwiseNorBit = Types.AssertBitVecTypeOrFail(operandExpr);
+                if (bitwiseNorBit.Expr.SortSize <= 1) {
                     throw new IllegalExpression("The bit vector length should be greater than 1 in order to use this operator");
                 }
-                var bitwiseNorExpr = _z3Ctx.MkBVRedAND(bitwiseNorBit);
-                var convertBitToBool2 = _z3Ctx.MkEq(bitwiseNorExpr, _z3Ctx.MkBV(1, bitwiseNorExpr.SortSize));
-                // var bitwiseNorBool = _z3Ctx.MkNot((BoolExpr)convertBitToBool2);
-                return (Z3Expr.From(convertBitToBool2), 
-                    operandVars);
+                var bitwiseNorExpr = _z3Ctx.MkBVRedOR(bitwiseNorBit);
+                var convertBitToBoolNor = _z3Ctx.MkEq(bitwiseNorExpr, _z3Ctx.MkBV(1, bitwiseNorExpr.SortSize));
+                return (Z3Expr.From(
+                        _z3Ctx.MkNot(convertBitToBoolNor)), 
+                    operandVars
+                );
             
             case SvUnaryExpression.UnaryOP.Xor:
-                var bitwiseXorBit = (BitVecExpr)Types.AssertBitVecTypeOrFail(operandExpr);
-                if (bitwiseXorBit.SortSize <= 1) {
+                var bitwiseXorBit = Types.AssertBitVecTypeOrFail(operandExpr);
+                if (bitwiseXorBit.Expr.SortSize <= 1) {
                     throw new IllegalExpression("The bit vector length should be greater than 1 in order to use this operator");
                 }
                 var firstBitXor = _z3Ctx.MkExtract(0,0,bitwiseXorBit);
                 var firstInputXor = _z3Ctx.MkEq(firstBitXor, _z3Ctx.MkBV(1, firstBitXor.SortSize));
                 BoolExpr finalResultXor = null;
-                var sizeXor = bitwiseXorBit.SortSize;
+                var sizeXor = bitwiseXorBit.Expr.SortSize;
                 for (uint i = 1; i < sizeXor; i++) {
                     var nextBitXor = _z3Ctx.MkExtract(i,i,bitwiseXorBit);
                     var secondInputXor = _z3Ctx.MkEq(nextBitXor, _z3Ctx.MkBV(1, nextBitXor.SortSize));
@@ -637,13 +640,13 @@ public class Sv2Z3Compiler {
                         operandVars);
             
             case SvUnaryExpression.UnaryOP.Xnor:
-                var bitwiseXnorBit = (BitVecExpr)Types.AssertBitVecTypeOrFail(operandExpr);
-                if (bitwiseXnorBit.SortSize <= 1) {
+                var bitwiseXnorBit = Types.AssertBitVecTypeOrFail(operandExpr);
+                if (bitwiseXnorBit.Expr.SortSize <= 1) {
                     throw new IllegalExpression("The bit vector length should be greater than 1 in order to use this operator");
                 }
                 var firstBitXnor = _z3Ctx.MkExtract(0,0,bitwiseXnorBit);
                 BitVecExpr finalResultXnor = null;
-                var sizeXnor = bitwiseXnorBit.SortSize;
+                var sizeXnor = bitwiseXnorBit.Expr.SortSize;
                 for (uint i = 1; i < sizeXnor; i++) {
                     var nextBitXnor = _z3Ctx.MkExtract(i,i,bitwiseXnorBit);
                     finalResultXnor = _z3Ctx.MkBVXNOR(firstBitXnor, nextBitXnor);
@@ -721,7 +724,7 @@ public class Sv2Z3Compiler {
                     );
                 }
                 else {
-                    var (leftExprBvSameSz,item1SameSz) = Types.MakeSameSizeByZeroExtension(
+                    var (leftExprBvSameSz,item1SameSz) = Types.MakeSameSizeBySignExtension(
                         leftExprBv, openRange.Item1, _z3Ctx
                      );
                     constraint = _z3Ctx.MkEq(
@@ -740,7 +743,7 @@ public class Sv2Z3Compiler {
                     );
                 }
                 else {
-                    var (leftExprBvSameSz,item1SameSz,item2SameSz) = Types.MakeSameSizeByZeroExtension(
+                    var (leftExprBvSameSz,item1SameSz,item2SameSz) = Types.MakeSameSizeBySignExtension(
                         leftExprBv, openRange.Item1, openRange.Item2, _z3Ctx
                     );
                     constraint = _z3Ctx.MkAnd(
