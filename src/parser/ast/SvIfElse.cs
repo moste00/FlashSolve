@@ -32,7 +32,7 @@ public class SvIfElse : SvConstraint.Expr
         }
     }
 
-    public SvConstraintSet Else {
+    public SvConstraintSet? Else {
         get {
             return _else;
         }
