@@ -1,3 +1,4 @@
+using flashsolve.parser.invoker.antlrinvoker;
 using Microsoft.Z3;
 
 namespace flashsolve.compiler; 
@@ -29,7 +30,7 @@ public class Sv2Z3Compiler {
         return result;
     }
 
-    public RandProblem Compile(SvClass cls) {
+    private RandProblem Compile(SvClass cls) {
         var result = new RandProblem();
         string oldClsName = _currClsName;
         RandProblem old = _currProblem;
@@ -56,7 +57,7 @@ public class Sv2Z3Compiler {
         return result;
     }
 
-    public (BoolExpr,HashSet<string>) Compile(SvConstraint constraint) {
+    private (BoolExpr,HashSet<string>) Compile(SvConstraint constraint) {
         BoolExpr[] items = new BoolExpr[constraint.Items.items.Count];
         HashSet<string> constraintVarNames = new();
 
@@ -70,12 +71,12 @@ public class Sv2Z3Compiler {
         }
 
         return (
-            _z3Ctx.MkAnd(items), 
+            (items.Length == 1)? items[0]:_z3Ctx.MkAnd(items), 
             constraintVarNames
         );
     }
 
-    public (BoolExpr, HashSet<string>) Compile(SvConstraint.BlockItem item) {
+    private (BoolExpr, HashSet<string>) Compile(SvConstraint.BlockItem item) {
         if (item is SvConstraint.Expr expr) {
             return Compile(expr);
         }
@@ -85,7 +86,7 @@ public class Sv2Z3Compiler {
         return (null,null);
     }
 
-    public (BoolExpr, HashSet<string>) Compile(SvConstraint.Expr exp) {
+    private (BoolExpr, HashSet<string>) Compile(SvConstraint.Expr exp) {
         if (exp is SvExprOrDist exOrDist) {
             var (constraintExpr,varNames) = Compile(exOrDist);
             return (
@@ -124,7 +125,7 @@ public class Sv2Z3Compiler {
         return (null, null);
     }
 
-    public (Z3Expr, HashSet<string>) Compile(SvExprOrDist exd) {
+    private (Z3Expr, HashSet<string>) Compile(SvExprOrDist exd) {
         if (exd is SvExpr e) {
             return Compile(e);
         }
@@ -132,22 +133,31 @@ public class Sv2Z3Compiler {
         //unreachable
         return (null, null);
     }
-    public (Z3Expr, HashSet<string>) Compile(SvUniqueness uniquenessExpr)
+    private (Z3Expr, HashSet<string>) Compile(SvUniqueness uniquenessExpr)
     {
         var (operand, varNames) = Compile(uniquenessExpr.OpenRange);
+        List<Z3Expr> operandsDistinct = new List<Z3Expr>();
+        foreach (var entry in operand) {
+            if (entry.Item2 != null) {
+                throw new UnsupportedOperation("The range of 2 values is not supported in Uniqueness expressions");
+            }
+            operandsDistinct.Add(entry.Item1);
+        }
+        
         return (
             Z3Expr.From(_z3Ctx.MkDistinct(
-                    operand
-                    )),
+                    Z3Expr.ToZ3(operandsDistinct)
+            )),
             varNames
         );
-        // Z3Expr.From(_z3Ctx.MkDistinct(operandVarNames.Select(varName => _currProblem.GetVar(varName))))
     }
-
-    public (Z3Expr, HashSet<string>) Compile(SvImplication implicationExpr)
+    private (Z3Expr, HashSet<string>) Compile(SvImplication implicationExpr)
     {
-        var (antecedent, antecedentVarNames) = Compile(implicationExpr.Expr);
-        var (consequent, consequentVarNames) = Compile(implicationExpr.ConstraintSet);
+        var (antecedent, 
+             antecedentVarNames) = Compile(implicationExpr.Expr);
+        var (consequent, 
+             consequentVarNames) = Compile(implicationExpr.ConstraintSet);
+        
         antecedentVarNames.UnionWith(consequentVarNames);
         var varNames = antecedentVarNames;
 
@@ -161,89 +171,64 @@ public class Sv2Z3Compiler {
         
     }
 
-    public (Z3Expr, HashSet<string>) Compile(SvIfElse ifThenElseExpr)
+    private (Z3Expr, HashSet<string>) Compile(SvIfElse ifThenElseExpr)
     {
         var (condition, conditionVarNames) = Compile(ifThenElseExpr.Expr);
         var (thenExpr, thenVarNames) = Compile(ifThenElseExpr.Then);
-        Z3Expr? elseExpr = null;
-        HashSet<string>? elseVarNames = null;
         conditionVarNames.UnionWith(thenVarNames);
+        
+        Z3Expr? elseExpr = null;
         if (ifThenElseExpr.Else is not null) {
-            (elseExpr,elseVarNames) = Compile(ifThenElseExpr.Else);
-            conditionVarNames.UnionWith(elseVarNames);
+            (elseExpr,
+             HashSet<string> elseVarNames) = Compile(ifThenElseExpr.Else);
+             conditionVarNames.UnionWith(elseVarNames);
         }
         
         var varNames = conditionVarNames;
+
+        var thenImplication = Z3Expr.From(_z3Ctx.MkImplies(
+            Types.AssertBoolTypeOrFail(condition),
+            Types.AssertBoolTypeOrFail(thenExpr)
+        ));
         if (ifThenElseExpr.Else is null) {
             return (
-                Z3Expr.From(_z3Ctx.MkImplies(
-                    Types.AssertBoolTypeOrFail(condition),
-                    Types.AssertBoolTypeOrFail(thenExpr)
-                )),
+                thenImplication,
                 varNames
             );
         }
+        
+        var elseImplication = Z3Expr.From(_z3Ctx.MkImplies(
+            _z3Ctx.MkNot(Types.AssertBoolTypeOrFail(condition)),
+            Types.AssertBoolTypeOrFail(elseExpr!)
+        ));
         return (
-            Z3Expr.From((BoolExpr)_z3Ctx.MkITE(
-                Types.AssertBoolTypeOrFail(condition),
-                Types.AssertBoolTypeOrFail(thenExpr),
-                Types.AssertBoolTypeOrFail(elseExpr)
-            )),
+            Z3Expr.From(_z3Ctx.MkAnd(thenImplication,elseImplication)),
             varNames
         );
     }
     
-    public (Z3Expr, HashSet<string>) Compile(SvConstraintSet constraintSet)
+    private (Z3Expr.Bool, HashSet<string>) Compile(SvConstraintSet constraintSet)
     {
         var constraintExprs = new List<BoolExpr>();
         var varNames = new HashSet<string>();
 
         foreach (var expr in constraintSet)
         {
-            var (constraintExpr, exprVarNames) = Compile(expr);
+            (BoolExpr constraintExpr, 
+             HashSet<string> exprVarNames) = Compile(expr);
             constraintExprs.Add(constraintExpr);
             varNames.UnionWith(exprVarNames);
         }
 
         var constraintExprsArray = constraintExprs.ToArray();
         var combinedExpr = _z3Ctx.MkAnd(constraintExprsArray);
-        return (Z3Expr.From(combinedExpr)
-            , varNames
-            );
+        return (
+            Z3Expr.From(combinedExpr), 
+            varNames
+        );
     }
     
-    public (List<Expr>, HashSet<string>) Compile(SvOpenRange openRange)
-    {
-        var rangeExprs = new List<Expr>();
-        var varNames = new HashSet<string>();
-
-        foreach (var valueRange in openRange)
-        {
-            var (rangeExpr, rangeVarNames) = Compile(valueRange);
-            rangeExprs.Add(rangeExpr);
-            varNames.UnionWith(rangeVarNames);
-        }
-        
-        return (rangeExprs,
-            varNames
-            );
-    }
-    public (Expr, HashSet<string>) Compile(SvValueRange valueRange)
-    {
-        // var varNames = new Tuple<SvExpr, SvExpr>();
-        // var varNames = new HashSet<string>();
-
-        if (valueRange.Item2 is not null) {
-            throw new UnsupportedOperation("The range of 2 values is not supported yet");
-            return (null, null);
-        }
-        var (rangeExpr, varNames) = Compile(valueRange.Item1);
-        return (Types.AssertBitVecTypeOrFail(rangeExpr),
-                varNames
-            );
-    }
-
-    public (Z3Expr, HashSet<string>) Compile(SvExpr ex) {
+    private (Z3Expr, HashSet<string>) Compile(SvExpr ex) {
         if (ex is SvBinaryExpression be) {
             return Compile(be);
         }
@@ -255,13 +240,18 @@ public class Sv2Z3Compiler {
         if (ex is SvPrimary pe) {
             return Compile(pe);
         }
-        
-        UnrecognizedAstNode.Throw(ex);
+
+        if (ex is SvInsideExpression ie) {
+            return Compile(ie);
+        }
+
+
+            UnrecognizedAstNode.Throw(ex);
         //unreachable
         return (null, null);
     }
 
-    public (Z3Expr, HashSet<string>) Compile(SvBinaryExpression bin) {
+    private (Z3Expr, HashSet<string>) Compile(SvBinaryExpression bin) {
         var (left, leftVarNames) = Compile(bin.Left);
         var (right, rightVarNames) = Compile(bin.Right);
 
@@ -278,7 +268,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVAdd(sameSizeL, sameSizeR)),
                     varNames
@@ -293,7 +283,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVSub(sameSizeL, sameSizeR)),
                     varNames
@@ -308,7 +298,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVMul(sameSizeL, sameSizeR)),
                     varNames
@@ -323,7 +313,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVSDiv(sameSizeL, sameSizeR)),
                     varNames
@@ -338,7 +328,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVSMod(sameSizeL, sameSizeR)),
                     varNames
@@ -356,7 +346,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVLSHR(sameSizeL, sameSizeR)),
                     varNames
@@ -373,7 +363,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVASHR(sameSizeL, sameSizeR)),
                     varNames
@@ -391,7 +381,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVSLT(sameSizeL, sameSizeR)),
                     varNames
@@ -406,7 +396,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVSGT(sameSizeL, sameSizeR)),
                     varNames
@@ -421,7 +411,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVSLE(sameSizeL, sameSizeR)),
                     varNames
@@ -436,7 +426,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVSGE(sameSizeL, sameSizeR)),
                     varNames
@@ -451,7 +441,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkEq(sameSizeL, sameSizeR)),
                     varNames
@@ -466,7 +456,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkNot(_z3Ctx.MkEq(sameSizeL, sameSizeR))),
                     varNames
@@ -487,7 +477,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVAND(sameSizeL, sameSizeR)),
                     varNames
@@ -502,7 +492,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVOR(sameSizeL, sameSizeR)),
                     varNames
@@ -517,7 +507,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVXOR(sameSizeL, sameSizeR)),
                     varNames
@@ -532,7 +522,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVXNOR(sameSizeL, sameSizeR)),
                     varNames
@@ -563,35 +553,214 @@ public class Sv2Z3Compiler {
     }
 
     
-    public (Z3Expr, HashSet<string>) Compile(SvUnaryExpression un) {
+    private (Z3Expr, HashSet<string>) Compile(SvUnaryExpression un) {
+        var (operandExpr, operandVars) = Compile(un.Operand); // Compile the operand expression
         switch (un.OP) {
             case SvUnaryExpression.UnaryOP.Plus:
-                throw new NotImplementedException();
-            case SvUnaryExpression.UnaryOP.Minus:
-                throw new NotImplementedException();
+                return (operandExpr, operandVars);
+            
+            // case SvUnaryExpression.UnaryOP.Minus:
+            //     var operandExprBv = Types.AssertBitVecTypeOrFail(operandExpr);
+            //     var operandExprArith = _z3Ctx.MkBV2Int(operandExprBv, true);
+            //     var minusExprArith = _z3Ctx.MkUnaryMinus(operandExprArith);
+            //     var minusExprBv = _z3Ctx.MkInt2BV(operandExprBv.Expr.SortSize,minusExprArith);
+            //     return (Z3Expr.From(minusExprBv),
+            //         operandVars);
+            
             case SvUnaryExpression.UnaryOP.Negation:
-                throw new NotImplementedException();
+                var operandExprBool = Types.AssertBoolTypeOrFail(operandExpr);
+                var negatedExpr = _z3Ctx.MkNot(operandExprBool);
+                return (Z3Expr.From(negatedExpr),
+                    operandVars);
+            
             case SvUnaryExpression.UnaryOP.Complement:
-                throw new NotImplementedException();
+                var complementExprBit = Types.AssertBitVecTypeOrFail(operandExpr);
+                var complementExpr = _z3Ctx.MkBVNot(complementExprBit);
+                return (Z3Expr.From(complementExpr),
+                    operandVars);
+            
             case SvUnaryExpression.UnaryOP.BitwiseAnd:
-                throw new NotImplementedException();
+                var bitwiseAndBit = Types.AssertBitVecTypeOrFail(operandExpr);
+                if (bitwiseAndBit.Expr.SortSize <= 1) {
+                    throw new IllegalExpression("The bit vector length should be greater than 1 in order to use this operator");
+                }
+                var bitwiseAndExpr = _z3Ctx.MkBVRedAND(bitwiseAndBit);
+                return (Z3Expr.From(bitwiseAndExpr), 
+                    operandVars);
+            
             case SvUnaryExpression.UnaryOP.BitwiseNand:
-                throw new NotImplementedException();
+                var bitwiseNandBit = Types.AssertBitVecTypeOrFail(operandExpr);
+                if (bitwiseNandBit.Expr.SortSize <= 1) {
+                    throw new IllegalExpression("The bit vector length should be greater than 1 in order to use this operator");
+                }
+                var bitwiseNandExpr = _z3Ctx.MkBVRedAND(bitwiseNandBit);
+                var convertBitToBoolNand = _z3Ctx.MkEq(bitwiseNandExpr, _z3Ctx.MkBV(1, bitwiseNandExpr.SortSize));
+                return (Z3Expr.From(
+                        _z3Ctx.MkNot(convertBitToBoolNand)), 
+                    operandVars
+                );
+            
             case SvUnaryExpression.UnaryOP.BitwiseOr:
-                throw new NotImplementedException();
+                var bitwiseOrBit = Types.AssertBitVecTypeOrFail(operandExpr);
+                if (bitwiseOrBit.Expr.SortSize <= 1) {
+                    throw new IllegalExpression("The bit vector length should be greater than 1 in order to use this operator");
+                }
+                var bitwiseOrExpr = _z3Ctx.MkBVRedOR(bitwiseOrBit);
+                return (Z3Expr.From(bitwiseOrExpr), 
+                    operandVars);
+            
             case SvUnaryExpression.UnaryOP.BitwiseNor:
-                throw new NotImplementedException();
+                var bitwiseNorBit = Types.AssertBitVecTypeOrFail(operandExpr);
+                if (bitwiseNorBit.Expr.SortSize <= 1) {
+                    throw new IllegalExpression("The bit vector length should be greater than 1 in order to use this operator");
+                }
+                var bitwiseNorExpr = _z3Ctx.MkBVRedOR(bitwiseNorBit);
+                var convertBitToBoolNor = _z3Ctx.MkEq(bitwiseNorExpr, _z3Ctx.MkBV(1, bitwiseNorExpr.SortSize));
+                return (Z3Expr.From(
+                        _z3Ctx.MkNot(convertBitToBoolNor)), 
+                    operandVars
+                );
+            
             case SvUnaryExpression.UnaryOP.Xor:
-                throw new NotImplementedException();
+                var bitwiseXorBit = Types.AssertBitVecTypeOrFail(operandExpr);
+                if (bitwiseXorBit.Expr.SortSize <= 1) {
+                    throw new IllegalExpression("The bit vector length should be greater than 1 in order to use this operator");
+                }
+                var firstBitXor = _z3Ctx.MkExtract(0,0,bitwiseXorBit);
+                var firstInputXor = _z3Ctx.MkEq(firstBitXor, _z3Ctx.MkBV(1, firstBitXor.SortSize));
+                BoolExpr finalResultXor = null;
+                var sizeXor = bitwiseXorBit.Expr.SortSize;
+                for (uint i = 1; i < sizeXor; i++) {
+                    var nextBitXor = _z3Ctx.MkExtract(i,i,bitwiseXorBit);
+                    var secondInputXor = _z3Ctx.MkEq(nextBitXor, _z3Ctx.MkBV(1, nextBitXor.SortSize));
+                    finalResultXor = _z3Ctx.MkXor(firstInputXor, secondInputXor);
+                    firstInputXor = finalResultXor;
+                }
+                return (Z3Expr.From(finalResultXor),
+                        operandVars);
+            
             case SvUnaryExpression.UnaryOP.Xnor:
-                throw new NotImplementedException();
+                var bitwiseXnorBit = Types.AssertBitVecTypeOrFail(operandExpr);
+                if (bitwiseXnorBit.Expr.SortSize <= 1) {
+                    throw new IllegalExpression("The bit vector length should be greater than 1 in order to use this operator");
+                }
+                var firstBitXnor = _z3Ctx.MkExtract(0,0,bitwiseXnorBit);
+                BitVecExpr finalResultXnor = null;
+                var sizeXnor = bitwiseXnorBit.Expr.SortSize;
+                for (uint i = 1; i < sizeXnor; i++) {
+                    var nextBitXnor = _z3Ctx.MkExtract(i,i,bitwiseXnorBit);
+                    finalResultXnor = _z3Ctx.MkBVXNOR(firstBitXnor, nextBitXnor);
+                    firstBitXnor = finalResultXnor;
+                }
+                var finalResultBool = _z3Ctx.MkEq(finalResultXnor, _z3Ctx.MkBV(1, finalResultXnor.SortSize));
+                return (Z3Expr.From(finalResultBool),
+                    operandVars);
+            
             default:
                 UnrecognizedAstPropertyValue.Throw(un.OP);
                 //unreachable
                 return (null, null);
         }    
     }
-    public (Z3Expr, HashSet<string>) Compile(SvPrimary prim) {
+    private (List<(Z3Expr.BitVec,Z3Expr.BitVec?)>, 
+             HashSet<string>) 
+             Compile(SvOpenRange openRange)
+    {
+        var rangeExprs = new List<(Z3Expr.BitVec,Z3Expr.BitVec?)>();
+        var varNames = new HashSet<string>();
+
+        foreach (var valueRange in openRange)
+        {
+            var (rangeExpr, rangeVarNames) = Compile(valueRange);
+            rangeExprs.Add(rangeExpr);
+            varNames.UnionWith(rangeVarNames);
+        }
+        
+        return (rangeExprs,
+                varNames
+            );
+    }
+    private ((Z3Expr.BitVec, Z3Expr.BitVec?), HashSet<string>) Compile(SvValueRange valueRange)
+    {
+        var (rangeExpr1, varNames1) = Compile(valueRange.Item1);
+        var rangeExpr1Bv = Types.AssertBitVecTypeOrFail(rangeExpr1);
+        
+        if (valueRange.Item2 != null) {
+            var (rangeExpr2, varNames2) = Compile(valueRange.Item2);
+            var rangeExpr2Bv = Types.AssertBitVecTypeOrFail(rangeExpr2);
+            varNames1.UnionWith(varNames2);
+            
+            return (
+                (rangeExpr1Bv, rangeExpr2Bv),
+                varNames1
+            );
+        }
+        
+        return (
+            (rangeExpr1Bv, null),
+            varNames1
+        );
+    }
+
+    private (Z3Expr, HashSet<string>) Compile(SvInsideExpression ie) {
+        (Z3Expr leftExpr, 
+         HashSet<string> exprVars) = Compile(ie.Expr);
+        var (openRangeExprs, 
+             openRangeVars) = Compile(ie.OpenRange);
+        exprVars.UnionWith(openRangeVars);
+        
+        var leftExprBv = Types.AssertBitVecTypeOrFail(leftExpr);
+        BoolExpr[] insideConstraints = new BoolExpr[openRangeExprs.Count];
+
+        int i = 0;
+        foreach (var openRange in openRangeExprs) {
+            BoolExpr constraint;
+            //compiles to an equal constraint
+            if (openRange.Item2 == null) {
+                if (leftExprBv.Expr.SortSize == openRange.Item1.Expr.SortSize) {
+                    constraint = _z3Ctx.MkEq(
+                        leftExprBv,
+                        openRange.Item1
+                    );
+                }
+                else {
+                    var (leftExprBvSameSz,item1SameSz) = Types.MakeSameSizeBySignExtension(
+                        leftExprBv, openRange.Item1, _z3Ctx
+                     );
+                    constraint = _z3Ctx.MkEq(
+                        leftExprBvSameSz,
+                        item1SameSz
+                    );
+                }
+            }
+            //compiles to a conjunction of 2 range constraints (inequalities)
+            else {
+                if (leftExprBv.Expr.SortSize == openRange.Item1.Expr.SortSize && 
+                    leftExprBv.Expr.SortSize == openRange.Item2.Expr.SortSize) {
+                    constraint = _z3Ctx.MkAnd(
+                        _z3Ctx.MkBVSLE(leftExprBv,openRange.Item2),
+                        _z3Ctx.MkBVSGE(leftExprBv,openRange.Item1)
+                    );
+                }
+                else {
+                    var (leftExprBvSameSz,item1SameSz,item2SameSz) = Types.MakeSameSizeBySignExtension(
+                        leftExprBv, openRange.Item1, openRange.Item2, _z3Ctx
+                    );
+                    constraint = _z3Ctx.MkAnd(
+                        _z3Ctx.MkBVSLE(leftExprBvSameSz,item2SameSz),
+                        _z3Ctx.MkBVSGE(leftExprBvSameSz, item1SameSz)
+                    );
+                }
+            }
+            insideConstraints[i++] = constraint;
+        }
+
+        return (
+            Z3Expr.From(_z3Ctx.MkOr(insideConstraints)),
+            exprVars
+        );
+    }
+    private (Z3Expr, HashSet<string>) Compile(SvPrimary prim) {
         if (prim is SvLiteral lit) {
             return Compile(lit);
         }
@@ -605,12 +774,12 @@ public class Sv2Z3Compiler {
         return (null, null);
     }
 
-    public (Z3Expr, HashSet<string>) Compile(SvLiteral lit) {
+    private (Z3Expr, HashSet<string>) Compile(SvLiteral lit) {
         if (lit is SvNumLiteral num) {
             return Compile(num);
         }
 
-        if (lit is SvStringLiteral str) {
+        if (lit is SvStringLiteral) {
             throw new UnsupportedOperation("Compiler doesn't support compiling strings yet.");
         }
 
@@ -619,7 +788,7 @@ public class Sv2Z3Compiler {
         return (null, null);
     }
 
-    public (Z3Expr, HashSet<string>) Compile(SvHierarchicalId hid) {
+    private (Z3Expr, HashSet<string>) Compile(SvHierarchicalId hid) {
         if (hid.HierarchicalIds.Count == 1) {
             return (
                 Z3Expr.From(_currProblem.LookupVar(_currClsName +"#"+ hid.HierarchicalIds[0])),
@@ -632,7 +801,7 @@ public class Sv2Z3Compiler {
         return (null, null);
     }
 
-    public (Z3Expr, HashSet<string>) Compile(SvNumLiteral numLit) {
+    private (Z3Expr, HashSet<string>) Compile(SvNumLiteral numLit) {
         return (
             Z3Expr.BitVec.FromSvNum(numLit.Number,_z3Ctx),
             new HashSet<string>()

@@ -43,3 +43,9 @@ public class UnrecognizedNumberFormat : Exception {
     public UnrecognizedNumberFormat(string msg) : base(msg) { }
     public UnrecognizedNumberFormat(string msg, Exception inner) : base(msg, inner) { }
 }
+
+public class NoSuchChildClass : Exception {
+    public NoSuchChildClass() { }
+    public NoSuchChildClass(string msg) : base(msg) { }
+    public NoSuchChildClass(string msg, Exception inner) : base(msg, inner) { }
+}

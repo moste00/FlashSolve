@@ -14,6 +14,7 @@ public class Z3Expr {
         }
         public BoolExpr Expr => _e;
         public static implicit operator BoolExpr(Bool b) => b._e;
+        public static implicit operator Expr(Bool b) => b._e;
     }
     public class BitVec : Z3Expr {
         private bool _isSigned;
@@ -23,7 +24,8 @@ public class Z3Expr {
         }
         public BitVecExpr Expr => _e;
         public static implicit operator BitVecExpr(BitVec bv) => bv._e;
-
+        public static implicit operator Expr(BitVec bv) => bv._e;
+        
         public BitVec SetSigned(bool s) {
             _isSigned = s;
             return this;
@@ -166,4 +168,19 @@ public class Z3Expr {
 
     public static Bool From(BoolExpr e) => new(e);
     public static BitVec From(BitVecExpr e) => new(e);
+
+    public static implicit operator Expr(Z3Expr e) =>
+        (e is BitVec bv) ? bv.Expr :
+        (e is Bool b   ) ? b.Expr  : 
+        throw new NoSuchChildClass(
+            $"{e.GetType().Name} is not a recognized child class of Z3Expr");
+    public static Expr[] ToZ3(List<Z3Expr> z3Exprs) {
+        Expr[] exprs = new Expr[z3Exprs.Count];
+        int i = 0;
+        foreach (var z3Exp in z3Exprs) {
+            exprs[i++] = z3Exp;
+        }
+
+        return exprs;
+    }
 }

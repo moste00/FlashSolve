@@ -45,21 +45,21 @@ uniqueness_constraint : UNIQUE OPEN_CURLY_BRACE open_range_list CLOSED_CURLY_BRA
 constraint_set : constraint_expr # ConstraintExpressionSet
                | OPEN_CURLY_BRACE constraint_expr* CLOSED_CURLY_BRACE # ConstraintExpressionsSet
                ;
-expression_or_dist :  expression # ExprOrDist
+expression_or_dist : expression # ExprOrDist
                    ;
 expression : primary # PrimaryExpression
            | OPEN_PAREN operator_assignment CLOSED_PAREN # AssignmentOperator
-           | UNARY_OPERATOR (attribute_instance)* primary # UnaryOperator
+           | (PLUS | MINUS | BITWISE_AND | BITWISE_OR | BITWISE_XOR_XNOR | UNARY_OPERATOR_EXLUSIVE) (attribute_instance)* primary # UnaryOperator
            | inc_or_dec_expression # IncOrDecExpression
            | expression BINARY_OPERATOR_1 (attribute_instance)* expression # PowerOperator
            | expression BINARY_OPERATOR_2 (attribute_instance)* expression # MulDivModOperator
-           | expression BINARY_OPERATOR_3 (attribute_instance)* expression # AddSubOperator
+           | expression (PLUS | MINUS) (attribute_instance)* expression # AddSubOperator
            | expression BINARY_OPERATOR_4 (attribute_instance)* expression # ShiftOperators
            | expression BINARY_OPERATOR_5 (attribute_instance)* expression # ComparisonOperators
            | expression BINARY_OPERATOR_6 (attribute_instance)* expression # EqualityOperators
-           | expression BINARY_OPERATOR_7 (attribute_instance)* expression # BitWiseAndOperator
-           | expression BINARY_OPERATOR_8 (attribute_instance)* expression # BitWiseXorXnorOperator
-           | expression BINARY_OPERATOR_9 (attribute_instance)* expression # BitWiseOrOperator
+           | expression BITWISE_AND (attribute_instance)* expression # BitWiseAndOperator
+           | expression BITWISE_XOR_XNOR (attribute_instance)* expression # BitWiseXorXnorOperator
+           | expression BITWISE_OR (attribute_instance)* expression # BitWiseOrOperator
            | expression BINARY_OPERATOR_10 (attribute_instance)* expression # AndOperator
            | expression BINARY_OPERATOR_11 (attribute_instance)* expression # OrOperator
            | <assoc=right> expression ( MATCHES pattern )? ( TRIPLE_AMPERSAND expression_or_cond_pattern )* QUESTION_MARK (attribute_instance)* expression COLON expression # ConditionalExpression //conditional_expression
@@ -95,9 +95,9 @@ value_range : expression # ExprValRange
             | OPEN_SQUARE_BRACKET expression COLON expression CLOSED_SQUARE_BRACKET # OpenRange
             ;
 variable_lvalue : ID # LVariableId
-                ;
+                ;        
 /* ********************************************************** Data Declarations ****************************************************************** */
 class_data_decl : (RAND | RANDC)? data_type ID SEMICOLON # DataTypeClassDecl
                 ;
-data_type : BIT  (OPEN_SQUARE_BRACKET DECIMAL_NUMBER COLON DECIMAL_NUMBER CLOSED_SQUARE_BRACKET)? # BitDataType
+data_type : BIT  (OPEN_SQUARE_BRACKET NUMBER COLON NUMBER CLOSED_SQUARE_BRACKET)? # BitDataType
           ;
