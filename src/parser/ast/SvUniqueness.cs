@@ -8,7 +8,7 @@ public class SvUniqueness : SvConstraint.Expr
         OpenRange = openRange;
     }
     public SvOpenRange OpenRange {
-        get;
-        set;
+        get => openRange;
+        set => openRange = value;
     }
 }

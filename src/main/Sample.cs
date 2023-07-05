@@ -38,22 +38,23 @@ public class Sample
         // should run the candidate algorithm with respect to the output configs
         // then writes the output results
         var inv = new AntlrInvoker(); 
-        inv.add_file("./grammar-runners/input/1.txt");
+        inv.add_file("F:/7.GP/FlashSolve/Tests/uniqueness1.txt");
         var compiler = new Sv2Z3Compiler();
         var problem = compiler.Compile((SvConstraintProgram)inv.Ast[0]);
 
-        var sampler =
+        var sampler = 
             new Hash(_configs, _numOfOutputs, problem); // new SubRand(_configs, _numOfOutputs, problem, new Random())
-        sampler.run_naive();
-        /*
-    var randomizers = new Dictionary<string, SubRandUtils.RangeAwareRandomizer>();
-    foreach (var entry in problem.NonOverconstrainedVars()) {
-        randomizers[entry.Key] = new SubRandUtils.BlindRandomizer(entry.Value.SortSize,problem.Context);
-    }
-    sampler.Run(
-        new SubRandUtils.EpsilonGreedy(),
-        randomizers
-    );
-    */
+        sampler.run_hash();
+        Console.WriteLine("Sample Done Successfully");
+        
+    // var randomizers = new Dictionary<string, SubRandUtils.RangeAwareRandomizer>();
+    // foreach (var entry in problem.NonOverconstrainedVars()) {
+    //     randomizers[entry.Key] = new SubRandUtils.BlindRandomizer(entry.Value.SortSize,problem.Context);
+    // }
+    // sampler.Run(
+    //     new SubRandUtils.EpsilonGreedy(),
+    //     randomizers
+    // );
+    
     }
 }

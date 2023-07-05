@@ -156,7 +156,9 @@ public class CstVisitor : ISystemVerilogParserVisitor<SvAstNode> {
     }
 
     public SvAstNode VisitOpenRangeList(SystemVerilogParser.OpenRangeListContext context) {
-        return  context.open_range_list().Accept(this);
+        return new SvUniqueness(
+            (SvOpenRange)context.open_range_list().Accept(this)
+        );
     }
 
     public SvAstNode VisitConstraintExpressionSet(SystemVerilogParser.ConstraintExpressionSetContext context)

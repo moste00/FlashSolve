@@ -718,7 +718,7 @@ public class Sv2Z3Compiler {
                     );
                 }
                 else {
-                    var (leftExprBvSameSz,item1SameSz) = Types.MakeSameSizeBySignExtension(
+                    var (leftExprBvSameSz,item1SameSz) = Types.MakeSameSizeByZeroExtension(
                         leftExprBv, openRange.Item1, _z3Ctx
                      );
                     constraint = _z3Ctx.MkEq(
@@ -737,7 +737,7 @@ public class Sv2Z3Compiler {
                     );
                 }
                 else {
-                    var (leftExprBvSameSz,item1SameSz,item2SameSz) = Types.MakeSameSizeBySignExtension(
+                    var (leftExprBvSameSz,item1SameSz,item2SameSz) = Types.MakeSameSizeByZeroExtension(
                         leftExprBv, openRange.Item1, openRange.Item2, _z3Ctx
                     );
                     constraint = _z3Ctx.MkAnd(
@@ -750,7 +750,9 @@ public class Sv2Z3Compiler {
         }
 
         return (
-            Z3Expr.From(_z3Ctx.MkOr(insideConstraints)),
+            Z3Expr.From((insideConstraints.Length > 1)?
+                         _z3Ctx.MkOr(insideConstraints): 
+                         insideConstraints[0]),
             exprVars
         );
     }
