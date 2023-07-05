@@ -76,7 +76,6 @@ public class Base
 
     protected (Context context, BoolExpr[] constraints, Dictionary<string, BitVecExpr> namesToExprs) get_constraints()
     {
-        // mocking till kamal finishes his class
         var ctx = _problem.Context;
 
         var constraints = _problem.Constraints;

@@ -1,11 +1,7 @@
-using flashsolve.compiler;
-using Microsoft.Z3;
-
 namespace flashsolve.main;
 
-using flashsolve.util.cmdparse;
+using util.cmdparse;
 using static Parse;
-using static Sample;
 using static Compile;
 public static class FlashSolve {
     enum SubprogramType {
@@ -29,7 +25,7 @@ public static class FlashSolve {
                         ParseMain(subprogramArgs);
                         break;
                     case SubprogramType.FlashSampler:
-                        var sv1 = new SampleV1(69);
+                        var sv1 = new Sample(100000);
                         sv1.run();
                         //SampleMain(subprogramArgs);
                         break;

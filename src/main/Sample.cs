@@ -1,6 +1,7 @@
 using flashsolve.compiler;
 using flashsolve.parser.ast;
 using flashsolve.parser.invoker.antlrinvoker;
+using flashsolve.util.datastructs;
 
 namespace flashsolve.main;
 
@@ -10,7 +11,7 @@ using Microsoft.Z3;
 using flashsolve.sampler.algorithms;
 using flashsolve.sampler;
 
-public class SampleV1
+public class Sample
 {
     //constants
     private const string ConfigFilePath = "src/main/config.json";
@@ -21,7 +22,7 @@ public class SampleV1
     // note: missing: cadidate algorithm, constraints variable
     
     // Constructor
-    public SampleV1(uint numOfOutputs)
+    public Sample(uint numOfOutputs)
     {
         _configs = new Config(ConfigFilePath);
         _numOfOutputs = numOfOutputs;
@@ -33,31 +34,26 @@ public class SampleV1
         // then choose the best one
     }
 
-    public void run()
-    {
+    public void run() {
         // should run the candidate algorithm with respect to the output configs
         // then writes the output results
-        string svSource = @"""
-        class Pkt;
-	        rand bit [7:0] addr;
-	        rand bit [7:0] data;
-	        
-	        constraint addr_limit { 
-		        addr*data <= 8'hB; 
-		        addr == 'h4;
-	        }
-        endclass
-        """;
         var inv = new AntlrInvoker(); 
         inv.add_file("./grammar-runners/input/1.txt");
         var compiler = new Sv2Z3Compiler();
         var problem = compiler.Compile((SvConstraintProgram)inv.Ast[0]);
-        
-        var sampler = new Hybird(_configs, 1000, problem);
-        Console.WriteLine("************************************************************************************");
-        sampler.run_hybird_alternate(2);
-        Console.WriteLine("************************************************************************************");
+
+        var sampler =
+            new Hash(_configs, _numOfOutputs, problem); // new SubRand(_configs, _numOfOutputs, problem, new Random())
+        sampler.run_naive();
+        /*
+    var randomizers = new Dictionary<string, SubRandUtils.RangeAwareRandomizer>();
+    foreach (var entry in problem.NonOverconstrainedVars()) {
+        randomizers[entry.Key] = new SubRandUtils.BlindRandomizer(entry.Value.SortSize,problem.Context);
     }
-
-
+    sampler.Run(
+        new SubRandUtils.EpsilonGreedy(),
+        randomizers
+    );
+    */
+    }
 }

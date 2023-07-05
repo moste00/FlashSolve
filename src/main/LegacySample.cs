@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Text;
 using Microsoft.Z3;
 
-public static class Sample {
+public static class LegacySample {
     public static void SampleMain(String[] args) {
         var strategy = args[0];
         Boolean limitSols = false;
