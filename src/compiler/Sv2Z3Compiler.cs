@@ -558,15 +558,7 @@ public class Sv2Z3Compiler {
         switch (un.OP) {
             case SvUnaryExpression.UnaryOP.Plus:
                 return (operandExpr, operandVars);
-            
-            // case SvUnaryExpression.UnaryOP.Minus:
-            //     var operandExprBv = Types.AssertBitVecTypeOrFail(operandExpr);
-            //     var operandExprArith = _z3Ctx.MkBV2Int(operandExprBv, true);
-            //     var minusExprArith = _z3Ctx.MkUnaryMinus(operandExprArith);
-            //     var minusExprBv = _z3Ctx.MkInt2BV(operandExprBv.Expr.SortSize,minusExprArith);
-            //     return (Z3Expr.From(minusExprBv),
-            //         operandVars);
-            
+
             case SvUnaryExpression.UnaryOP.Negation:
                 var operandExprBool = Types.AssertBoolTypeOrFail(operandExpr);
                 var negatedExpr = _z3Ctx.MkNot(operandExprBool);
@@ -585,7 +577,8 @@ public class Sv2Z3Compiler {
                     throw new IllegalExpression("The bit vector length should be greater than 1 in order to use this operator");
                 }
                 var bitwiseAndExpr = _z3Ctx.MkBVRedAND(bitwiseAndBit);
-                return (Z3Expr.From(bitwiseAndExpr), 
+                var bitwiseAndExprBool = _z3Ctx.MkEq(bitwiseAndExpr, _z3Ctx.MkBV(1, bitwiseAndExpr.SortSize));
+                return (Z3Expr.From(bitwiseAndExprBool), 
                     operandVars);
             
             case SvUnaryExpression.UnaryOP.BitwiseNand:
@@ -606,7 +599,8 @@ public class Sv2Z3Compiler {
                     throw new IllegalExpression("The bit vector length should be greater than 1 in order to use this operator");
                 }
                 var bitwiseOrExpr = _z3Ctx.MkBVRedOR(bitwiseOrBit);
-                return (Z3Expr.From(bitwiseOrExpr), 
+                var bitwiseOrExprBool = _z3Ctx.MkEq(bitwiseOrExpr, _z3Ctx.MkBV(1, bitwiseOrExpr.SortSize));
+                return (Z3Expr.From(bitwiseOrExprBool), 
                     operandVars);
             
             case SvUnaryExpression.UnaryOP.BitwiseNor:
