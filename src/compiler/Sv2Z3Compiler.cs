@@ -268,7 +268,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVAdd(sameSizeL, sameSizeR)),
                     varNames
@@ -283,7 +283,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVSub(sameSizeL, sameSizeR)),
                     varNames
@@ -298,7 +298,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVMul(sameSizeL, sameSizeR)),
                     varNames
@@ -313,7 +313,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVSDiv(sameSizeL, sameSizeR)),
                     varNames
@@ -328,7 +328,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVSMod(sameSizeL, sameSizeR)),
                     varNames
@@ -346,7 +346,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVLSHR(sameSizeL, sameSizeR)),
                     varNames
@@ -363,7 +363,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVASHR(sameSizeL, sameSizeR)),
                     varNames
@@ -381,7 +381,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVSLT(sameSizeL, sameSizeR)),
                     varNames
@@ -396,7 +396,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVSGT(sameSizeL, sameSizeR)),
                     varNames
@@ -411,7 +411,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVSLE(sameSizeL, sameSizeR)),
                     varNames
@@ -426,7 +426,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVSGE(sameSizeL, sameSizeR)),
                     varNames
@@ -441,7 +441,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkEq(sameSizeL, sameSizeR)),
                     varNames
@@ -456,7 +456,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkNot(_z3Ctx.MkEq(sameSizeL, sameSizeR))),
                     varNames
@@ -477,7 +477,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVAND(sameSizeL, sameSizeR)),
                     varNames
@@ -492,7 +492,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVOR(sameSizeL, sameSizeR)),
                     varNames
@@ -507,7 +507,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVXOR(sameSizeL, sameSizeR)),
                     varNames
@@ -522,7 +522,7 @@ public class Sv2Z3Compiler {
                     );
                 }
 
-                var (sameSizeL, sameSizeR) = Types.MakeSameSizeBySignExtension(l, r,_z3Ctx);
+                var (sameSizeL, sameSizeR) = Types.MakeSameSizeByZeroExtension(l, r,_z3Ctx);
                 return (
                     Z3Expr.From(_z3Ctx.MkBVXNOR(sameSizeL, sameSizeR)),
                     varNames
