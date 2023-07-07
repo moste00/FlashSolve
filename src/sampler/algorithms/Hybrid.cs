@@ -56,7 +56,7 @@ public class Hybrid : Hash
         run_hybrid_alternate_algorithm(NoOutputs);
         return  NamesToValues;
     }
-    public override void test_algorithm(ConcurrentDictionary<string, Dictionary<string, List<object>>> results)
+    public override void test_algorithm(ref Dictionary<string, Dictionary<string, List<object>>> results)
     {
         run_hybrid_alternate_algorithm(TestingNoOutputs);
         var added = results.TryAdd($"Hybrid{_type}", NamesToValues);

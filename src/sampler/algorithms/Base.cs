@@ -59,7 +59,7 @@ public class Base
         return new Dictionary<string, List<object>>();
     }
 
-    public virtual void test_algorithm(ConcurrentDictionary<string, Dictionary<string, List<object>>> results)
+    public virtual void test_algorithm(ref Dictionary<string, Dictionary<string, List<object>>> results)
     {
         Console.WriteLine("Warning: empty.....u called the base test function");
     }

@@ -176,7 +176,7 @@ public class Hash: Naive
         return NamesToValues;
     }
     
-    public override void test_algorithm(ConcurrentDictionary<string, Dictionary<string, List<object>>> results)
+    public override void test_algorithm(ref Dictionary<string, Dictionary<string, List<object>>> results)
     {
         run_hash_algorithm(TestingNoOutputs);
         var added = results.TryAdd("Hash", NamesToValues);

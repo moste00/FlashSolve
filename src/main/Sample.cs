@@ -80,18 +80,11 @@ public class Sample
         else
         {
             var algorithms = get_sampler_algorithms(_testAlgorithms["All"]);
-            ConcurrentDictionary<string, Dictionary<string, List<object>>> results = new  ConcurrentDictionary<string, Dictionary<string, List<object>>>();
-            List<Thread> threads = new List<Thread>();
+            Dictionary<string, Dictionary<string, List<object>>> results = new  Dictionary<string, Dictionary<string, List<object>>>();
+            //List<Thread> threads = new List<Thread>();
             foreach (var algo in algorithms)
             {
-                Thread childThread = new Thread(() => algo.test_algorithm(results));
-                childThread.Start();
-                threads.Add(childThread);
-            }
-
-            foreach (var thread in threads)
-            {
-                thread.Join(TimeSpan.FromSeconds(_configs.TestingTimeLimitSecs));
+                algo.test_algorithm(ref results);
             }
 
             evaluate_test_result(results);
@@ -180,7 +173,7 @@ public class Sample
         return results;
     }
 
-    private void evaluate_test_result(ConcurrentDictionary<string, Dictionary<string, List<object>>> results)
+    private void evaluate_test_result(Dictionary<string, Dictionary<string, List<object>>> results)
     {
         if(results.Count == 0)
             return;

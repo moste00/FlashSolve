@@ -90,7 +90,7 @@ public class Naive : Base
         return NamesToValues;
     }
 
-    public override void test_algorithm(ConcurrentDictionary<string, Dictionary<string, List<object>>> results)
+    public override void test_algorithm(ref Dictionary<string, Dictionary<string, List<object>>> results)
     {
         run_naive_algorithm(TestingNoOutputs);
         var added = results.TryAdd("Naive", NamesToValues);
