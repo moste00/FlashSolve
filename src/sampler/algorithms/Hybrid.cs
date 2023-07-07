@@ -34,10 +34,16 @@ public class Hybrid : Hash
         while (currentNumSols < thresh )
         {
             uint newCurrentNumSols;
-            if(runNaive)
-                newCurrentNumSols = run_naive_algorithm(currentNumSols + hybridAlgorithms[_type][0], currentNumSols);
+            if (runNaive)
+            {
+                var algoThresh = Math.Min(currentNumSols + hybridAlgorithms[_type][0], thresh);
+                newCurrentNumSols = run_naive_algorithm(algoThresh, currentNumSols);
+            }
             else
-                newCurrentNumSols = run_hash_algorithm(currentNumSols + hybridAlgorithms[_type][1], currentNumSols);
+            {
+                var algoThresh = Math.Min(currentNumSols + hybridAlgorithms[_type][1], thresh);
+                newCurrentNumSols = run_hash_algorithm(algoThresh, currentNumSols);
+            }
 
             runNaive = !runNaive;
             if(newCurrentNumSols == currentNumSols)

@@ -139,6 +139,16 @@ public static class Helper
     {
         int maxLength = namesToValues.Values.Max(list => list.Count);
 
+        foreach (var key in namesToValues.Keys)
+        {
+            if(key == "duration_in_millis")
+                Console.Write("   | "+key+"  ");
+            else
+                Console.Write(key+ "  ");
+        }
+
+        Console.Write("\n");
+
         for (int i = 0; i < maxLength; i++)
         {
             foreach (var kvp in namesToValues)
@@ -151,8 +161,8 @@ public static class Helper
                     if(key == "duration_in_millis")
                         Console.Write("   | " + values[i]+ " ms");
                     else
-                        //Console.Write(values[i]+ " ");
-                        Console.Write("0x" + BigInteger.Parse(values[i].ToString()).ToString("x")+ " ");
+                        Console.Write(values[i]+ " ");
+                        //Console.Write("0x" + BigInteger.Parse(values[i].ToString()).ToString("x")+ " ");
                 }
                 else
                 {
