@@ -31,6 +31,11 @@ public class Sample
 
     public void Run()
     {
+        if (not_valid_contraints())
+        {
+            Console.WriteLine("Error: there are no valid random constraints in that file");
+            return;
+        }
         while (_candidateAlgorithm == null)
         {
             Console.WriteLine("Info: Started testing the selected algorithms");
@@ -166,7 +171,7 @@ public class Sample
 
     private void evaluate_test_result(ConcurrentDictionary<string, Dictionary<string, List<object>>> results)
     {
-        if(results.IsEmpty)
+        if(results.Count == 0)
             return;
 
         double totSpread = 0.0;
@@ -205,5 +210,12 @@ public class Sample
 
         if (_numOfOutputs <= _configs.TestingSampleSize)
             _batchedResults = results[_candidateAlgorithmName];
+    }
+
+    private bool not_valid_contraints()
+    {
+        var constraints = _problem.Constraints;
+
+        return (constraints.Length <= 0);
     }
 }
