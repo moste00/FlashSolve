@@ -16,8 +16,10 @@ public class Sample
     // members
     private readonly Config _configs;
     private readonly uint _numOfOutputs;
-    private Dictionary<string, bool> testAlgorithms;
-    private Base canditidateAlgorithm;
+    private Dictionary<string, bool> _testAlgorithms;
+    private Base _candidateAlgorithm;
+    private string _candidateAlgorithmName;
+    private Dictionary<string, List<object>> _batchedResults;
     
     // Constructor
     public Sample(uint numOfOutputs)
@@ -27,17 +29,41 @@ public class Sample
         initialize_test_algorithms();
     }
 
-    public void run_test()
+    public void Run()
     {
-        if (testAlgorithms["singleAlgorithm"])
+        while (_candidateAlgorithm == null)
         {
-            canditidateAlgorithm = get_sampler_algorithms(false).First();
-            if (canditidateAlgorithm == null)
+            Console.WriteLine("Info: Started testing the selected algorithms");
+            run_test();
+            Console.WriteLine("Info: Done testing the selected algorithms");
+        }
+        Console.WriteLine("************************************************************************************");
+        
+        if (_numOfOutputs <= _configs.TestingSampleSize)
+        {
+            Console.WriteLine("Warning: getting data from the test sample (numOfOutputs <= TestingSampleSize)");
+            Console.WriteLine("Info: candidate algorithm=    " + _candidateAlgorithmName);
+            Helper.print_output_dictionary(_batchedResults);
+        }
+        else
+        {
+            Console.WriteLine("Info: running candidate algorithm " + _candidateAlgorithmName);
+            _candidateAlgorithm.run_algorithm();
+        }
+        Console.WriteLine("************************************************************************************");
+    }
+
+    private void run_test()
+    {
+        if (_testAlgorithms["singleAlgorithm"])
+        {
+            _candidateAlgorithm = get_sampler_algorithms(false).First();
+            if (_candidateAlgorithm == null)
                 throw new Exception("Exception: there is no valid algorithm selected");
         }
         else
         {
-            var algorithms = get_sampler_algorithms(testAlgorithms["All"]);
+            var algorithms = get_sampler_algorithms(_testAlgorithms["All"]);
             ConcurrentDictionary<string, Dictionary<string, List<object>>> results = new  ConcurrentDictionary<string, Dictionary<string, List<object>>>();
             List<Thread> threads = new List<Thread>();
             foreach (var algo in algorithms)
@@ -49,33 +75,19 @@ public class Sample
 
             foreach (var thread in threads)
             {
-                thread.Join();
+                thread.Join(TimeSpan.FromSeconds(_configs.TestingTimeLimitSecs));
             }
 
-            foreach (var res in results)
+            evaluate_test_result(results);
+   
+            if (_candidateAlgorithm == null)
             {
-                Console.WriteLine("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
-                Console.WriteLine(res.Key);
-                Helper.print_output_dictionary(res.Value);
-                Console.WriteLine("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+                Console.WriteLine("Warning: threads were timed out and no algo was selected... so we fall back to Naive");
+                _candidateAlgorithmName = "Naive";
+                _candidateAlgorithm = map_sampler_algorithms_names(_candidateAlgorithmName);
             }
         }
     }
-
-    public void run()
-    {
-        if (canditidateAlgorithm == null)
-        {
-            Console.WriteLine("Warning: Started testing the selected algorithms");
-            run_test();
-            Console.WriteLine("Warning: Done testing the selected algorithms");
-        }
-        Console.WriteLine("************************************************************************************");
-        Console.WriteLine("Info: running cadidate algorithm" + canditidateAlgorithm.GetType());
-        canditidateAlgorithm.run_algorithm();
-        Console.WriteLine("************************************************************************************");
-    }
-
 
     private void initialize_test_algorithms()
     {
@@ -86,7 +98,7 @@ public class Sample
                        + _configs.TestingAlgorithmsHybrid1
                        + _configs.TestingAlgorithmsHybrid2;
         
-        testAlgorithms = new Dictionary<string, bool>()
+        _testAlgorithms = new Dictionary<string, bool>()
         {
             { "Naive", _configs.TestingAlgorithmsNaive == 1},
             { "Hash", _configs.TestingAlgorithmsHash == 1},
@@ -133,7 +145,7 @@ public class Sample
     {
         List<Base> results = new List<Base>();
 
-        foreach (var item in testAlgorithms)
+        foreach (var item in _testAlgorithms)
         {
             if(item.Key == "All" || item.Key == "singleAlgorithm")
                 continue;
@@ -150,5 +162,48 @@ public class Sample
         }
 
         return results;
+    }
+
+    private void evaluate_test_result(ConcurrentDictionary<string, Dictionary<string, List<object>>> results)
+    {
+        if(results.IsEmpty)
+            return;
+
+        double totSpread = 0.0;
+        double totTime = 0.0;
+
+        Dictionary<string, List<double>> benchmarks = new Dictionary<string, List<double>>();
+        
+        foreach (var res in results)
+        {
+            var spread = Helper.calculate_spread(res.Value);
+            var timing = Helper.CalcTimePerSolution(res.Value).Item1;
+            totSpread += spread;
+            totTime += timing;
+
+            benchmarks[res.Key] = new List<double>() { spread, timing } ;
+        }
+
+        double bestScore = 0.0;
+        string bestAlgo = "";
+        foreach (var benchmark in benchmarks)
+        {
+            var score = (benchmark.Value[0] / totSpread) * 0.6 + (1 - benchmark.Value[1] / totTime) * 0.4;
+
+            if (score > bestScore)
+            {
+                bestScore = score;
+                bestAlgo = benchmark.Key;
+            }
+        }
+        
+        // Console.WriteLine("tot_spread= " + tot_spread + "   tot_time= " + tot_time);
+        // Console.WriteLine("best algo is  " + best_algo + "      with score=  " + best_score);
+        _candidateAlgorithmName = bestAlgo;
+        _candidateAlgorithm = map_sampler_algorithms_names(bestAlgo);
+
+
+        if (_numOfOutputs <= _configs.TestingSampleSize)
+            _batchedResults = results[_candidateAlgorithmName];
     }
 }
