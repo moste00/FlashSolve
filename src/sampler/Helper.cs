@@ -137,7 +137,7 @@ public static class Helper
     
     public static void print_output_dictionary(Dictionary<string, List<object>> namesToValues,string BenchmarkFilePath ,string outputFilePath)
     {
-        using StreamWriter benchmarkWriter = new StreamWriter(Path.Combine(BenchmarkFilePath));
+        using StreamWriter benchmarkWriter = new StreamWriter(Path.Combine(BenchmarkFilePath), true);
         using StreamWriter writer = new StreamWriter(Path.Combine(outputFilePath));
         int maxLength = namesToValues.Values.Max(list => list.Count);
         if (maxLength == 0)
