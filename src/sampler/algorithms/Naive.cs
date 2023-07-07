@@ -3,6 +3,7 @@ using flashsolve.compiler;
 namespace flashsolve.sampler.algorithms;
 using System.Diagnostics;
 using Microsoft.Z3;
+using System.Collections.Concurrent;
 
 public class Naive : Base
 {
@@ -80,10 +81,17 @@ public class Naive : Base
         return currentNumSols;
     }
 
-    public void run_naive()
+    public override void run_algorithm()
     {
         run_naive_algorithm(NoOutputs);
-        print_output_dictionary(NamesToValues);
+        Helper.print_output_dictionary(NamesToValues);
     }
 
+    public override void test_algorithm(ConcurrentDictionary<string, Dictionary<string, List<object>>> results)
+    {
+        run_naive_algorithm(TestingNoOutputs);
+        var added = results.TryAdd("Naive", NamesToValues);
+        if(!added)
+            throw new Exception("test_algorithm of (Naive) could not add it's results to the ConcurrentDictionary");
+    }
 }
