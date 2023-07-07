@@ -5,7 +5,7 @@ public class Config
 {
     //members
     public uint TestingSampleSize;
-    public uint TestingTimeLimitSecs;
+    public double TestingTimeLimitSecs;
     public int TestingAlgorithmsNaive;
     public int TestingAlgorithmsMaxsmt;
     public int TestingAlgorithmsHash;
@@ -27,7 +27,7 @@ public class Config
         // Accessing values from the "testing" object
         JsonElement testingDiffAlg = document.RootElement.GetProperty("testing");
         TestingSampleSize = testingDiffAlg.GetProperty("sampleSize").GetUInt32();
-        TestingTimeLimitSecs = testingDiffAlg.GetProperty("timeLimitSecs").GetUInt32();
+        TestingTimeLimitSecs = testingDiffAlg.GetProperty("timeLimitSecs").GetDouble();
 
         // Accessing values from the "algorithms" object within "testing"
         JsonElement algorithms = testingDiffAlg.GetProperty("algorithms");

@@ -137,12 +137,20 @@ public static class Helper
     
     public static void print_output_dictionary(Dictionary<string, List<object>> namesToValues)
     {
+        int maxLength = namesToValues.Values.Max(list => list.Count);
+        if (maxLength == 0)
+        {
+            Console.WriteLine("Info: this problem is unsatisfiable :(");
+            return;
+        }
+
         var spread = Helper.calculate_spread(namesToValues);
-        var timing = Helper.CalcTimePerSolution(namesToValues).Item1;
+
+        double timing = Double.NaN;
+        if(namesToValues.ContainsKey("duration_in_millis"))
+            timing = Helper.CalcTimePerSolution(namesToValues).Item1;
         Console.WriteLine("tot_spread= " + spread + "   tot_time= " + timing);
         Console.WriteLine("******************");
-
-        int maxLength = namesToValues.Values.Max(list => list.Count);
 
         foreach (var key in namesToValues.Keys)
         {

@@ -25,7 +25,7 @@ public class Naive : Base
         stopwatch.Restart();
         var result = Solver.Check();
         stopwatch.Stop();
-        NamesToValues["duration_in_millis"].Add(stopwatch.Elapsed.TotalMilliseconds);
+        NamesToValues[OutputDurationKey].Add(stopwatch.Elapsed.TotalMilliseconds);
 
         return result;
     }
@@ -42,9 +42,13 @@ public class Naive : Base
                 result = check_with_timer(stopwatch);
             else
                 result = Solver.Check();
-            
+
             if (result != Status.SATISFIABLE)
+            {
+                if(Timer)
+                    NamesToValues[OutputDurationKey].RemoveAt(NamesToValues[OutputDurationKey].Count - 1);
                 break;
+            }
             
             var model = Solver.Model!;
 
@@ -80,10 +84,10 @@ public class Naive : Base
         return currentNumSols;
     }
 
-    public override void run_algorithm()
+    public override Dictionary<string, List<object>> run_algorithm()
     {
         run_naive_algorithm(NoOutputs);
-        Helper.print_output_dictionary(NamesToValues);
+        return NamesToValues;
     }
 
     public override void test_algorithm(ConcurrentDictionary<string, Dictionary<string, List<object>>> results)

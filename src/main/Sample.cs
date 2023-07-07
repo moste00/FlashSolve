@@ -36,7 +36,7 @@ public class Sample
             Console.WriteLine("Error: there are no valid random constraints in that file");
             return;
         }
-        while (_candidateAlgorithm == null)
+        if (_candidateAlgorithm == null)
         {
             Console.WriteLine("Info: Started testing the selected algorithms");
             run_test();
@@ -44,16 +44,27 @@ public class Sample
         }
         Console.WriteLine("************************************************************************************");
         
-        if (_numOfOutputs <= _configs.TestingSampleSize)
+        if (_numOfOutputs <= _configs.TestingSampleSize && (_batchedResults != null))
         {
             Console.WriteLine("Warning: getting data from the test sample (numOfOutputs <= TestingSampleSize)");
             Console.WriteLine("Info: candidate algorithm=    " + _candidateAlgorithmName);
+            if (HandleOutputs.did_not_reached_no_outputs(_numOfOutputs, _batchedResults))
+            {
+                HandleOutputs handler = new HandleOutputs(_configs, _problem, _numOfOutputs, _batchedResults);
+                _batchedResults = handler.handle_missing_values();
+            }
             Helper.print_output_dictionary(_batchedResults);
         }
         else
         {
             Console.WriteLine("Info: running candidate algorithm " + _candidateAlgorithmName);
-            _candidateAlgorithm.run_algorithm();
+            var result = _candidateAlgorithm.run_algorithm();
+            if (HandleOutputs.did_not_reached_no_outputs(_numOfOutputs, result))
+            {
+                HandleOutputs handler = new HandleOutputs(_configs, _problem, _numOfOutputs, result);
+                result = handler.handle_missing_values();
+            }
+            Helper.print_output_dictionary(result);
         }
         Console.WriteLine("************************************************************************************");
     }
@@ -182,7 +193,9 @@ public class Sample
         foreach (var res in results)
         {
             var spread = Helper.calculate_spread(res.Value);
-            var timing = Helper.CalcTimePerSolution(res.Value).Item1;
+            var timing = 0.0;
+            if(_configs.SamplerTimer)
+                timing = Helper.CalcTimePerSolution(res.Value).Item1;
             totSpread += spread;
             totTime += timing;
 
@@ -193,9 +206,13 @@ public class Sample
         string bestAlgo = "";
         foreach (var benchmark in benchmarks)
         {
-            var score = (benchmark.Value[0] / totSpread) * 0.6 + (1 - benchmark.Value[1] / totTime) * 0.4;
+            double score;
+            if (_configs.SamplerTimer)
+                score = (benchmark.Value[0] / totSpread) * 0.6 + (1 - benchmark.Value[1] / totTime) * 0.4;
+            else
+                score = (benchmark.Value[0] / totSpread);
 
-            if (score > bestScore)
+            if (score >= bestScore)
             {
                 bestScore = score;
                 bestAlgo = benchmark.Key;

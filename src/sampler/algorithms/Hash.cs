@@ -131,7 +131,11 @@ public class Hash: Naive
                 result = Solver.Check();
             
             if (result != Status.SATISFIABLE)
+            {
+                if(Timer)
+                    NamesToValues[OutputDurationKey].RemoveAt(NamesToValues[OutputDurationKey].Count - 1);
                 break;
+            }
             
             var model = Solver.Model!;
 
@@ -166,10 +170,10 @@ public class Hash: Naive
         return currentNumSols;
     }
     
-    public override void run_algorithm()
+    public override Dictionary<string, List<object>> run_algorithm()
     {
         run_hash_algorithm(NoOutputs);
-        Helper.print_output_dictionary(NamesToValues);
+        return NamesToValues;
     }
     
     public override void test_algorithm(ConcurrentDictionary<string, Dictionary<string, List<object>>> results)

@@ -51,10 +51,10 @@ public class Hybrid : Hash
         }
     }
     
-    public override void run_algorithm()
+    public override Dictionary<string, List<object>> run_algorithm()
     {
         run_hybrid_alternate_algorithm(NoOutputs);
-        Helper.print_output_dictionary(NamesToValues);
+        return  NamesToValues;
     }
     public override void test_algorithm(ConcurrentDictionary<string, Dictionary<string, List<object>>> results)
     {

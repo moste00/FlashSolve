@@ -8,8 +8,8 @@ using System.Collections.Concurrent;
 public class Base
 {
     //constants
-    private const string OutputHashKey = "hash";
-    private const string OutputDurationKey = "duration_in_millis";
+    protected const string OutputHashKey = "hash";
+    protected const string OutputDurationKey = "duration_in_millis";
 
     // members
     protected readonly Config Configs;
@@ -54,8 +54,9 @@ public class Base
         return (ctx, constraints, namesToExprs);
     }
     
-    public virtual void run_algorithm()
+    public virtual Dictionary<string, List<object>> run_algorithm()
     {
+        return new Dictionary<string, List<object>>();
     }
 
     public virtual void test_algorithm(ConcurrentDictionary<string, Dictionary<string, List<object>>> results)
