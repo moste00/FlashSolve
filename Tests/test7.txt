@@ -1,0 +1,9 @@
+﻿class pkt;
+    rand bit[3:0] min;
+    rand bit[3:0] typ;
+    rand bit[3:0] max;
+    constraint range{ min == 4'h01;
+                        typ < max;
+                        max < 4'b1110;
+    }
+endclass

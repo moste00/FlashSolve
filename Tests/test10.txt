@@ -1,0 +1,23 @@
+﻿class TFoo;
+	rand bit [8:0] x;
+	rand bit [8:0] y;
+	rand bit [8:0] z;
+    rand bit [8:0] w;
+    rand bit [8:0] v;
+    rand bit [8:0] u;
+	constraint C1 {
+		x > 40 -> y < 130;
+		y < 100;
+		z * w - v != 50;
+		unique {x, z};
+		u inside {1,5,[6:13]};
+		if (10 == 0) {
+            v == 10;
+            w == 20;
+        } 
+        else {
+            v inside { 0, 15, 16, 20 };
+            w > 10;
+        }
+	}
+endclass

@@ -1,0 +1,11 @@
+﻿class MyClass;
+	rand bit [7:0] x;
+	rand bit [7:0] y;
+
+
+	constraint C1 {
+		y - x * 20 != 70;
+	}
+endclass
+
+ 
