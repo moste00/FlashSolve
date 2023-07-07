@@ -3,6 +3,10 @@ namespace flashsolve.main;
 using util.cmdparse;
 using static Parse;
 using static Compile;
+using flashsolve.compiler;
+using flashsolve.parser.ast;
+using flashsolve.parser.invoker.antlrinvoker;
+using flashsolve.util.datastructs;
 public static class FlashSolve {
     enum SubprogramType {
         FlashParser,
@@ -25,8 +29,13 @@ public static class FlashSolve {
                         ParseMain(subprogramArgs);
                         break;
                     case SubprogramType.FlashSampler:
-                        var sv1 = new Sample(100000);
-                        sv1.run();
+                        var inv = new AntlrInvoker(); 
+                        inv.add_file("../Tests/test.txt");
+                        var compiler = new Sv2Z3Compiler();
+                        var problem = compiler.Compile((SvConstraintProgram)inv.Ast[0]);
+                        
+                        var sv1 = new Sample(100000, problem);
+                        sv1.Run();
                         //SampleMain(subprogramArgs);
                         break;
                     case SubprogramType.FlashCompiler:

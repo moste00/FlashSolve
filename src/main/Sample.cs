@@ -1,12 +1,10 @@
 namespace flashsolve.main;
 
-using System.Diagnostics;
-using System.Text;
-using Microsoft.Z3;
 using flashsolve.sampler.algorithms;
 using flashsolve.sampler;
 using System.Collections.Concurrent;
 using System.Threading;
+using flashsolve.compiler;
 
 public class Sample
 {
@@ -20,12 +18,14 @@ public class Sample
     private Base _candidateAlgorithm;
     private string _candidateAlgorithmName;
     private Dictionary<string, List<object>> _batchedResults;
+    private RandProblem _problem;
     
     // Constructor
-    public Sample(uint numOfOutputs)
+    public Sample(uint numOfOutputs, RandProblem problem)
     {
         _configs = new Config(ConfigFilePath);
         _numOfOutputs = numOfOutputs;
+        _problem = problem;
         initialize_test_algorithms();
     }
 
@@ -117,22 +117,22 @@ public class Sample
         switch (algorithm)
         {
             case "Naive":
-                result = new Naive(_configs, _numOfOutputs);
+                result = new Naive(_configs, _numOfOutputs, _problem);
                 break;
             case "Hash":
-                result = new Hash(_configs, _numOfOutputs);
+                result = new Hash(_configs, _numOfOutputs, _problem);
                 break;
             case "Maxsmt":
                 Console.WriteLine("Warning: Maxsmt is still under development...... expecting the code to break.");
                 break;
             case "Hybrid0":
-                result = new Hybrid(_configs, _numOfOutputs, 0);
+                result = new Hybrid(_configs, _numOfOutputs, 0, _problem);
                 break;
             case "Hybrid1":
-                result = new Hybrid(_configs, _numOfOutputs, 1);
+                result = new Hybrid(_configs, _numOfOutputs, 1, _problem);
                 break;
             case "Hybrid2":
-                result = new Hybrid(_configs, _numOfOutputs ,2);
+                result = new Hybrid(_configs, _numOfOutputs ,2, _problem);
                 break;
             default:
                 Console.WriteLine("Warning: bug in the algorithm name");

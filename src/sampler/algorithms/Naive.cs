@@ -1,9 +1,8 @@
-using flashsolve.compiler;
-
 namespace flashsolve.sampler.algorithms;
 using System.Diagnostics;
 using Microsoft.Z3;
 using System.Collections.Concurrent;
+using flashsolve.compiler;
 
 public class Naive : Base
 {

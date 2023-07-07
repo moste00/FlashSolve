@@ -137,6 +137,11 @@ public static class Helper
     
     public static void print_output_dictionary(Dictionary<string, List<object>> namesToValues)
     {
+        var spread = Helper.calculate_spread(namesToValues);
+        var timing = Helper.CalcTimePerSolution(namesToValues).Item1;
+        Console.WriteLine("tot_spread= " + spread + "   tot_time= " + timing);
+        Console.WriteLine("******************");
+
         int maxLength = namesToValues.Values.Max(list => list.Count);
 
         foreach (var key in namesToValues.Keys)

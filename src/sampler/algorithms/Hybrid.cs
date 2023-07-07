@@ -1,12 +1,11 @@
 namespace flashsolve.sampler.algorithms;
-using System.Diagnostics;
-using Microsoft.Z3;
 using System.Collections.Concurrent;
+using flashsolve.compiler;
 
 public class Hybrid : Hash
 {
     private int _type;
-    public Hybrid(Config configs, uint noOutputs, int type) : base(configs, noOutputs)
+    public Hybrid(Config configs, uint noOutputs, int type, RandProblem problem) : base(configs, noOutputs, problem)
     {
         _type = type;
     }
