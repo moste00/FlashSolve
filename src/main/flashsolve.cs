@@ -30,7 +30,7 @@ public static class FlashSolve {
                         break;
                     case SubprogramType.FlashSampler:
                         var inv = new AntlrInvoker(); 
-                        inv.add_file("../Tests/test.txt");
+                        inv.add_file("Tests/test0.txt");
                         var compiler = new Sv2Z3Compiler();
                         var problem = compiler.Compile((SvConstraintProgram)inv.Ast[0]);
                         
