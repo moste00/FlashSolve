@@ -135,12 +135,16 @@ public static class Helper
         return (accTime, maxTime);
     }
     
-    public static void print_output_dictionary(Dictionary<string, List<object>> namesToValues)
+    public static void print_output_dictionary(Dictionary<string, List<object>> namesToValues,string BenchmarkFilePath ,string outputFilePath)
     {
+        using StreamWriter benchmarkWriter = new StreamWriter(Path.Combine(BenchmarkFilePath));
+        using StreamWriter writer = new StreamWriter(Path.Combine(outputFilePath));
         int maxLength = namesToValues.Values.Max(list => list.Count);
         if (maxLength == 0)
         {
-            Console.WriteLine("Info: this problem is unsatisfiable :(");
+            benchmarkWriter.WriteLine($"Benchmark values for file {outputFilePath}");
+            benchmarkWriter.WriteLine("Info: this problem is unsatisfiable :(");
+            benchmarkWriter.WriteLine("******************");
             return;
         }
 
@@ -149,18 +153,20 @@ public static class Helper
         double timing = Double.NaN;
         if(namesToValues.ContainsKey("duration_in_millis"))
             timing = Helper.CalcTimePerSolution(namesToValues).Item1;
-        Console.WriteLine("tot_spread= " + spread + "   tot_time= " + timing);
-        Console.WriteLine("******************");
-
+        benchmarkWriter.WriteLine($"Benchmark values for file {outputFilePath}");
+        benchmarkWriter.WriteLine($"tot_spread= {spread}   tot_time= {timing}");
+        benchmarkWriter.WriteLine("******************");
+            
+            
         foreach (var key in namesToValues.Keys)
         {
-            if(key == "duration_in_millis")
-                Console.Write("   | "+key+"  ");
+            if (key == "duration_in_millis" || key == "hash")
+                continue;
             else
-                Console.Write(key+ "  ");
+                writer.Write(key + "  ");
         }
 
-        Console.Write("\n");
+        writer.Write("\n");
 
         for (int i = 0; i < maxLength; i++)
         {
@@ -171,18 +177,18 @@ public static class Helper
 
                 if (i < values.Count)
                 {
-                    if(key == "duration_in_millis")
-                        Console.Write("   | " + values[i]+ " ms");
+                    if (key is "duration_in_millis" or "hash")
+                        continue;
                     else
-                        Console.Write(values[i]+ " ");
-                        //Console.Write("0x" + BigInteger.Parse(values[i].ToString()).ToString("x")+ " ");
+                        writer.Write($"{values[i]} ");
+                    //writer.Write("0x" + BigInteger.Parse(values[i].ToString()).ToString("x") + " ");
                 }
                 else
                 {
-                    Console.Write(" - ");
+                    writer.Write(" - ");
                 }
             }
-            Console.WriteLine();
+            writer.WriteLine();
         }
     }
 }

@@ -10,7 +10,9 @@ public class Sample
 {
     //constants
     private const string ConfigFilePath = "src/main/config.json";
-    
+    private const string OutResultsFilePath = "out/results/";
+    private const string OutBenchmarkFilePath = "out/benchmark.txt";
+
     // members
     private readonly Config _configs;
     private readonly uint _numOfOutputs;
@@ -19,13 +21,15 @@ public class Sample
     private string _candidateAlgorithmName;
     private Dictionary<string, List<object>> _batchedResults;
     private RandProblem _problem;
+    private readonly string _outputPath;
     
     // Constructor
-    public Sample(uint numOfOutputs, RandProblem problem)
+    public Sample(uint numOfOutputs, RandProblem problem, string outputFileName)
     {
         _configs = new Config(ConfigFilePath);
         _numOfOutputs = numOfOutputs;
         _problem = problem;
+        _outputPath =  OutResultsFilePath + outputFileName;
         initialize_test_algorithms();
     }
 
@@ -53,7 +57,7 @@ public class Sample
                 HandleOutputs handler = new HandleOutputs(_configs, _problem, _numOfOutputs, _batchedResults);
                 _batchedResults = handler.handle_missing_values();
             }
-            Helper.print_output_dictionary(_batchedResults);
+            Helper.print_output_dictionary(_batchedResults,OutBenchmarkFilePath, _outputPath);
         }
         else
         {
@@ -64,7 +68,7 @@ public class Sample
                 HandleOutputs handler = new HandleOutputs(_configs, _problem, _numOfOutputs, result);
                 result = handler.handle_missing_values();
             }
-            Helper.print_output_dictionary(result);
+            Helper.print_output_dictionary(result, OutBenchmarkFilePath,  _outputPath);
         }
         Console.WriteLine("************************************************************************************");
     }

@@ -47,7 +47,7 @@ public static class FlashSolve {
                                     (SvConstraintProgram)inv
                                         .Ast[0]);
                             var sv1 =
-                                new Sample(50, problem);
+                                new Sample(50, problem, "test2.txt");
                             sv1.Run();
                             break;
                         case SubprogramType.FlashCompiler:
@@ -80,7 +80,8 @@ public static class FlashSolve {
                                     var sv =
                                         new Sample(
                                             (uint)size,
-                                            rproblem);
+                                            rproblem,
+                                            fileName.Replace("Tests/", size+"_"));
                                     sv.Run();
                                 }
                             }
