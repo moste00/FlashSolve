@@ -183,10 +183,6 @@ public static class Helper
                         writer.Write($"{values[i]} ");
                     //writer.Write("0x" + BigInteger.Parse(values[i].ToString()).ToString("x") + " ");
                 }
-                else
-                {
-                    writer.Write(" - ");
-                }
             }
             writer.WriteLine();
         }

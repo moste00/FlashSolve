@@ -21,7 +21,7 @@ public class HandleOutputs
         _noOutputs = noOutputs;
         _namesToValues = namesToValues;
         _problem = problem;
-        _currentNoOutputs = (uint)namesToValues.Values.Min(list => list.Count);
+        _currentNoOutputs = (uint)namesToValues.Values.Max(list => list.Count);
     }
 
     public Dictionary<string, List<object>> handle_missing_values()
@@ -32,6 +32,7 @@ public class HandleOutputs
         var percentage = ((double)_currentNoOutputs / _noOutputs);
         if ( percentage < 0.75)
         {
+            Console.WriteLine("started naive repeat");
             var dict =run_naive(neededOutputs);
             merge_to_names_to_values(dict);
         }
@@ -96,12 +97,12 @@ public class HandleOutputs
                 _namesToValues[key].AddRange(values);
             }
         }
-        _currentNoOutputs = (uint)_namesToValues.Values.Min(list => list.Count);
+        _currentNoOutputs = (uint)_namesToValues.Values.Max(list => list.Count);
     }
 
     public static bool did_not_reached_no_outputs(uint noOutputs, Dictionary<string, List<object>> namesToValues)
     {
-        uint length = (uint)namesToValues.Values.Min(list => list.Count);
+        uint length = (uint)namesToValues.Values.Max(list => list.Count);
         return length < noOutputs;
     }
 }
