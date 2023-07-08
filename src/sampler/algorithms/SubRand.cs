@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using flashsolve.compiler;
 using flashsolve.util.datastructs;
 using Microsoft.Z3;
@@ -9,6 +10,7 @@ public class SubRand : Base {
     private readonly Context _ctx;
     private readonly Dictionary<string, BitVecExpr> _namesToExprs;
     private readonly Random _rand;
+    private readonly List<double> _measuredTimes;
     
     public SubRand(Config configs, uint noOutputs, RandProblem problem, Random rand) : base(configs, noOutputs, problem) {
         var (ctx,
@@ -18,22 +20,57 @@ public class SubRand : Base {
         _ctx = ctx;
         _namesToExprs = namesToExprs;
         _rand = rand;
+        _measuredTimes = new List<double>();
         
         _solver.Add(constraints);
     }
 
+    public override Dictionary<string, List<object>> run_algorithm() {
+        var randomizers =
+            new Dictionary<string,
+                SubRandUtils.RangeAwareRandomizer>();
+        
+        foreach (var entry in _problem.NonOverconstrainedVars()) {
+            randomizers[entry.Key] =
+                new SubRandUtils.BlindRandomizer(
+                    entry.Value.SortSize, _ctx);
+        }
+        var result =
+            Run(new SubRandUtils.EpsilonGreedy(),
+                randomizers);
+        
+        Dictionary<string,List<object>> res = new();
+        foreach (var entry in result) {
+            res[entry.Key] = new List<object>();
+            foreach (var bv in entry.Value) {
+                res[entry.Key].Add(bv);
+            }
+        }
+
+        res[OutputDurationKey] = new List<object>();
+        foreach (var time in _measuredTimes) {
+            res[OutputDurationKey].Add(time);
+        }
+        return res;
+    }
     public Dictionary<string,List<BitVecExpr>> 
         Run(
             SubRandUtils.ExplorationExploitationPolicy policy, 
-            Dictionary<string,SubRandUtils.RangeAwareRandomizer> randomizers
+            Dictionary<string,SubRandUtils.RangeAwareRandomizer> randomizers,
+            uint numOutputs = 0
         ) {
+        if (numOutputs == 0) {
+            numOutputs = NoOutputs;
+        }
+        _measuredTimes.Clear();
+        
         Status stat;
         uint numComputedOutputs = 0;
         StringToIntDict numSuccessfulRandomizations = new StringToIntDict();
         
         BoolExpr[] notEqualPrev = new BoolExpr[_namesToExprs.Count];
         
-        while (numComputedOutputs < NoOutputs) {
+        while (numComputedOutputs < numOutputs) {
             stat = _solver.Check();
             if (stat != Status.SATISFIABLE) {
                 break;
@@ -41,10 +78,17 @@ public class SubRand : Base {
             
             (Expr[] randomizationAssertions, 
              string[] randomizedVarNames)   = RandomizeSubsetOfVariables(policy, randomizers, numSuccessfulRandomizations);
+            
+            var timer = new Stopwatch();
+            timer.Start();
+            
             stat = _solver.Check(randomizationAssertions);
             if (stat != Status.SATISFIABLE) {
                 continue;
             }
+            
+            timer.Stop();
+            _measuredTimes.Add(timer.Elapsed.TotalMilliseconds);
             
             var model = _solver.Model!;
             int i = 0;
@@ -103,6 +147,41 @@ public class SubRand : Base {
         }
 
         return sols;
+    }
+
+    public override void test_algorithm(ref Dictionary<string, Dictionary<string, List<object>>> results) {
+        var randomizers =
+            new Dictionary<string,
+                SubRandUtils.RangeAwareRandomizer>();
+        
+        foreach (var entry in _problem.NonOverconstrainedVars()) {
+            randomizers[entry.Key] =
+                new SubRandUtils.BlindRandomizer(
+                    entry.Value.SortSize, _ctx);
+        }
+
+        var result =
+            Run(new SubRandUtils.EpsilonGreedy(),
+                randomizers,
+                TestingNoOutputs);
+        
+        Dictionary<string,List<object>> res = new();
+        foreach (var entry in result) {
+            res[entry.Key] = new List<object>();
+            foreach (var bv in entry.Value) {
+                res[entry.Key].Add(bv);
+            }
+        }
+
+        res[OutputDurationKey] = new List<object>();
+        foreach (var time in _measuredTimes) {
+            res[OutputDurationKey].Add(time);
+        }
+        var added = results.TryAdd("Maxsmt",res);
+        if (!added) {
+            throw new Exception(
+                "test_algorithm of (Maxsmt) could not add it's results to the ConcurrentDictionary");
+        }
     }
 
     private (Expr[],string[]) RandomizeSubsetOfVariables(

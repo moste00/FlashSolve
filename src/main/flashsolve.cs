@@ -39,7 +39,7 @@ public static class FlashSolve {
                             break;
                         case SubprogramType.FlashSampler:
                             var inv = new AntlrInvoker();
-                            inv.add_file("Tests/test2.txt");
+                            inv.add_file("Tests/implication2.txt");
                             var compiler =
                                 new Sv2Z3Compiler();
                             var problem =
@@ -47,7 +47,7 @@ public static class FlashSolve {
                                     (SvConstraintProgram)inv
                                         .Ast[0]);
                             var sv1 =
-                                new Sample(50, problem, "test2.txt");
+                                new Sample(50, problem, "Tests/implication2.txt");
                             sv1.Run();
                             break;
                         case SubprogramType.FlashCompiler:
@@ -58,30 +58,25 @@ public static class FlashSolve {
                             string[] fileNames =
                                 Directory.GetFiles(
                                     folderPath);
+                            
                             int[] sizes =
                                 { 50, 100, 1000, 10000 };
-                            foreach
-                                (string fileName in
-                                 fileNames) {
-                                var invoker =
-                                    new AntlrInvoker();
+                            foreach (string fileName in fileNames) {
+                                var invoker = new AntlrInvoker();
                                 invoker.add_file(fileName);
-                                var svcompiler =
-                                    new Sv2Z3Compiler();
+                                var svcompiler = new Sv2Z3Compiler();
                                 var rproblem =
-                                    svcompiler.Compile(
-                                        (SvConstraintProgram)
-                                        invoker.Ast[0]);
+                                    svcompiler.Compile((SvConstraintProgram)invoker.Ast[0]);
 
-                                foreach
-                                    (int size in sizes) {
+                                foreach (int size in sizes) {
                                     Console.WriteLine(
                                         $"Testing: File {fileName} at size {size}");
-                                    var sv =
-                                        new Sample(
-                                            (uint)size,
-                                            rproblem,
-                                            fileName.Replace("Tests/", size+"_"));
+                                    var filename = fileName
+                                        .Replace("Tests/",
+                                            "_"+ size +"_")
+                                        .Replace("Tests\\",
+                                            "_"+ size +"_");
+                                    var sv = new Sample((uint)size, rproblem,filename);
                                     sv.Run();
                                 }
                             }

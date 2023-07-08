@@ -136,7 +136,7 @@ public class Sample
                 result = new Hash(_configs, _numOfOutputs, _problem);
                 break;
             case "Maxsmt":
-                Console.WriteLine("Warning: Maxsmt is still under development...... expecting the code to break.");
+                result = new SubRand(_configs,_numOfOutputs,_problem,new Random());
                 break;
             case "Hybrid0":
                 result = new Hybrid(_configs, _numOfOutputs, 0, _problem);
@@ -148,7 +148,7 @@ public class Sample
                 result = new Hybrid(_configs, _numOfOutputs ,2, _problem);
                 break;
             default:
-                Console.WriteLine("Warning: bug in the algorithm name");
+                Console.WriteLine("Warning: No such sampling algorithm");
                 break;
         }
 
