@@ -1,0 +1,11 @@
+class pkt;
+    rand bit[3:0] min;
+    rand bit[3:0] typ;
+    rand bit[3:0] max;
+    rand bit[7:0] fixed;
+    constraint range{ min > 5;
+                        typ < max;
+                        max < 20;
+    }
+    constraint fix{fixed == 7'b101;}
+endclass

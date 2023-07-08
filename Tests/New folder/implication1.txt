@@ -1,0 +1,7 @@
+﻿class TFoo;
+	rand bit [31:0] x;
+	rand bit [31:0] y;
+	constraint C1 {
+		x == 2 -> y >100;
+	}
+endclass
