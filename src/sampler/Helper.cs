@@ -137,6 +137,7 @@ public static class Helper
     
     public static void print_output_dictionary(Dictionary<string, List<object>> namesToValues,string BenchmarkFilePath ,string outputFilePath)
     {
+        Console.WriteLine("info: started printing");
         using StreamWriter benchmarkWriter = new StreamWriter(Path.Combine(BenchmarkFilePath), true);
         using StreamWriter writer = new StreamWriter(Path.Combine(outputFilePath));
         int maxLength = namesToValues.Values.Max(list => list.Count);
@@ -148,7 +149,7 @@ public static class Helper
             return;
         }
 
-        var spread = Helper.calculate_spread(namesToValues);
+        var spread = "from py script";//Helper.calculate_spread(namesToValues);
 
         double timing = Double.NaN;
         if(namesToValues.ContainsKey("duration_in_millis"))
@@ -158,15 +159,15 @@ public static class Helper
         benchmarkWriter.WriteLine("******************");
             
             
-        foreach (var key in namesToValues.Keys)
-        {
-            if (key == "duration_in_millis" || key == "hash")
-                continue;
-            else
-                writer.Write(key + "  ");
-        }
-
-        writer.Write("\n");
+        // foreach (var key in namesToValues.Keys)
+        // {
+        //     if (key == "duration_in_millis" || key == "hash")
+        //         continue;
+        //     else
+        //         writer.Write(key + "  ");
+        // }
+        
+        // writer.Write("\n");
 
         for (int i = 0; i < maxLength; i++)
         {
@@ -180,7 +181,7 @@ public static class Helper
                     if (key is "duration_in_millis" or "hash")
                         continue;
                     else
-                        writer.Write($"{values[i]} ");
+                        writer.Write($"{key}= {values[i]}, ");
                     //writer.Write("0x" + BigInteger.Parse(values[i].ToString()).ToString("x") + " ");
                 }
             }
