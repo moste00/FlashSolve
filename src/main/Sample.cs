@@ -85,7 +85,6 @@ public class Sample
         {
             var algorithms = get_sampler_algorithms(_testAlgorithms["All"]);
             Dictionary<string, Dictionary<string, List<object>>> results = new  Dictionary<string, Dictionary<string, List<object>>>();
-            //List<Thread> threads = new List<Thread>();
             foreach (var algo in algorithms)
             {
                 algo.test_algorithm(ref results);
@@ -95,7 +94,6 @@ public class Sample
    
             if (_candidateAlgorithm == null)
             {
-                Console.WriteLine("Warning: threads were timed out and no algo was selected... so we fall back to Naive");
                 _candidateAlgorithmName = "Naive";
                 _candidateAlgorithm = map_sampler_algorithms_names(_candidateAlgorithmName);
             }
