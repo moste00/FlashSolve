@@ -38,6 +38,10 @@ public static class FlashSolve {
                             ParseMain(subprogramArgs);
                             break;
                         case SubprogramType.FlashSampler:
+                            if (File.Exists(
+                                    $"out/benchmark.txt")) {
+                                File.Delete("out/benchmark.txt");
+                            }
                             var inv = new AntlrInvoker();
                             inv.add_file(subprogramArgs[1]);   // "Tests/implication2.txt"
                             var compiler =
@@ -54,6 +58,10 @@ public static class FlashSolve {
                             CompileMain(subprogramArgs);
                             break;
                         case SubprogramType.FlashTest:
+                            if (File.Exists(
+                                    $"out/benchmark.txt")) {
+                                File.Delete("out/benchmark.txt");
+                            }
                             string folderPath = "Tests";
                             string[] fileNames =
                                 Directory.GetFiles(
