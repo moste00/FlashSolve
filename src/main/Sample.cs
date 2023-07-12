@@ -31,7 +31,8 @@ public class Sample
         _problem = problem;
         outputFileName = outputFileName.Contains('/') ? 
             outputFileName.Split('/').Last() : 
-            outputFileName.Split('\\').Last();
+            outputFileName.Contains('\\') ?
+            outputFileName.Split('\\').Last() : outputFileName;
         outputFileName = outputFileName.Split('.')[0] + "_" + numOfOutputs + ".txt";
         _outputPath =  OutResultsFilePath + outputFileName;
         initialize_test_algorithms();
