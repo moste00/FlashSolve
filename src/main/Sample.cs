@@ -29,6 +29,10 @@ public class Sample
         _configs = new Config(ConfigFilePath);
         _numOfOutputs = numOfOutputs;
         _problem = problem;
+        outputFileName = outputFileName.Contains('/') ? 
+            outputFileName.Split('/').Last() : 
+            outputFileName.Split('\\').Last();
+        outputFileName = outputFileName.Split('.')[0] + "_" + numOfOutputs + ".txt";
         _outputPath =  OutResultsFilePath + outputFileName;
         initialize_test_algorithms();
     }

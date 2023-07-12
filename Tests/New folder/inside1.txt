@@ -1,7 +1,0 @@
-﻿class TBar;
-	rand bit [7:0] x;
-	constraint C1 {
-		x inside { [1'b0:3'b111] };
-	}
-
-endclass

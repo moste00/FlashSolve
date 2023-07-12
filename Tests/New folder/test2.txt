@@ -1,5 +1,0 @@
-class pkt;
-    rand bit[7:0] data;
-    constraint data_limit{data <= 8'b1110;}
-endclass
-

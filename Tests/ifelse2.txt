@@ -2,7 +2,7 @@
 	rand bit[7:0] x;
 	rand bit[7:0] y;
 	constraint C1 {
-		if (10 == 0) {
+		if (x == 0) {
 			x inside {[1:50]};
 			~y < 50;
 		} else {
