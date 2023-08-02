@@ -26,17 +26,17 @@ def parse_file(file_path):
                 avg = float(re.search(average_pattern, line).group(2))
                 spreads[file_name_new] = avg
     
-directory = sys.argv[1]
+file_name = sys.argv[1]
 
 
 
-parse_file(directory)
+parse_file(file_name)
 print(spreads)
 
 # save the times in a excel file
-filename = "our_spread.csv"
+spread_file_name = f"{file_name}_spread.csv"
 # Open the file in write mode and create a CSV writer object
-with open(filename, "w", newline="") as csvfile:
+with open(spread_file_name, "w", newline="") as csvfile:
     writer = csv.writer(csvfile)
     # Write the headers
     writer.writerow(["file", "avg_spread"])

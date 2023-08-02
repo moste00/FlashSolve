@@ -1,4 +1,13 @@
 parser grammar SystemVerilogParser ;
+// Add more rules as needed according to the standard
+// be careful that the rules (grammar) in the standard is not always clear and sometimes ambiguous
+// it's not written in a way that is easy to be parsed by a parser generator
+// so you may need to do some work to make it more clear and unambiguous
+// run the ANTLR tool to generate the parser, it will generate a code that generates the Concrete Syntax Tree (CST)
+// auto-generated files from ANTLR are in src/parser/antlr
+// you should override the default behavior of the ANTLR tool to generate the Abstract Syntax Tree (AST) instead of the CST
+// the design of the AST is up to you
+// you will have to implement the interface in the file SystemVerilogParserVisitor
 
 options {
             tokenVocab = SystemVerilogLexer;

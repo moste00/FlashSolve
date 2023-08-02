@@ -1,5 +1,7 @@
 lexer grammar SystemVerilogLexer ;
 
+// Things to be added: more tokens, based numbers, real numbers and any tokens according to the standard of the language (IEEE)
+// run the ANTLR tool to generate the lexer first before running the parser
 //IMPORTANT: ALWAYS KEEP THIS ABOVE ANY_ASCII_CHARACTER
 WS : [ \t\r\n]+ -> skip ;
 COMMENTS : '//' ~[\r\n]* -> skip ;
@@ -35,6 +37,9 @@ QUESTION_MARK : '?';
 DOT : '.'  ;
 DOT_STAR : '.*' ;
 
+// fragment means that the rule is not a token by itself, but is used in other tokens
+// it's like using a variable to store a specific regex and use it in other regexes
+// fragments are not visible in the parser file
 fragment DECIMAL_DIGIT : [0-9] ;
 fragment BINARY_DIGIT : [01xzXZ] ;
 fragment OCTAL_DIGIT : [0-7xzXZ] ;
